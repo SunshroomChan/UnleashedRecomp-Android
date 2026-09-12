@@ -6,6 +6,7 @@
 #include <os/process.h>
 #include <patches/audio_patches.h>
 #include <patches/inspire_patches.h>
+#include <patches/player_patches.h>
 #include <ui/game_window.h>
 #include <user/config.h>
 #include <user/paths.h>
@@ -106,6 +107,7 @@ PPC_FUNC(sub_822C1130)
 
     AudioPatches::Update(App::s_deltaTime);
     InspirePatches::Update();
+    PlayerPatches::Update();
 
     // Apply subtitles option.
     if (auto pApplicationDocument = SWA::CApplicationDocument::GetInstance())
@@ -124,5 +126,9 @@ PPC_FUNC(sub_822C1130)
         *SWA::SGlobals::ms_IsCollisionRender = true;
 
     __imp__sub_822C1130(ctx, base);
+    // Re-apply player-only state after the original update as well. The game
+    // may decrement rings during its tick, so the post-tick pass guarantees
+    // the value visible to the HUD is restored for the next frame.
+    PlayerPatches::Update();
 }
 
