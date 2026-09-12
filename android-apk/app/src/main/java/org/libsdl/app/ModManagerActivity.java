@@ -68,7 +68,7 @@ public final class ModManagerActivity extends Activity {
         { "HomingAttackOnJump", "Homing attack on jump" },
         { "InfiniteRings", "Infinite rings" },
         { "InfiniteRingEnergy", "Infinite ring energy (full)" },
-        { "InfiniteJump", "Infinite jump (hold A, experimental)" },
+        { "InfiniteJump", "Infinite jump (hold A)" },
         { "InfiniteUnleash", "Infinite Unleash (full from start)" },
         { "SaveScoreAtCheckpoints", "Save score at checkpoints" },
         { "UseAlternateTitle", "Use alternate title" },

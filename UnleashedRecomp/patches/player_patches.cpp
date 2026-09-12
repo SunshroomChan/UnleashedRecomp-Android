@@ -12,39 +12,33 @@ static uint32_t g_lastEnemyScore;
 static uint32_t g_lastTrickScore;
 static float g_lastDarkGaiaEnergy;
 static bool g_isUnleashCancelled;
-static std::array<uint32_t, 2> g_ringPlayerContexts{};
 static std::array<uint32_t, 2> g_evilSonicContexts{};
 
-static bool IsInfiniteRingsEnabled()
+static constexpr uint32_t PLAYER_RING_COUNT_OFFSET = 1336;
+static constexpr uint32_t PLAYER_RING_ENERGY_OFFSET = 1340;
+static constexpr uint32_t INFINITE_RING_COUNT = 999;
+
+PPC_FUNC_IMPL(__imp__sub_82318DF0);
+
+static float GetMaximumRingEnergy(PPCContext& ctx, uint8_t* base, uint32_t playerContext)
 {
-    return Config::InfiniteRings || Config::InfiniteRingEnergy;
+    // The maximum boost/Ring Energy value depends on Sonic's current level.
+    // Query the game's own calculation on a context copy so the hook does not
+    // leak its temporary register changes back into the caller.
+    PPCContext queryContext = ctx;
+    queryContext.r3.u32 = playerContext;
+    __imp__sub_82318DF0(queryContext, base);
+    return static_cast<float>(queryContext.f1.f64);
 }
 
-static void TrackRingPlayerContext(uint32_t context)
+static void FillRingEnergy(PPCContext& ctx, uint8_t* base, uint32_t playerContext)
 {
-    if (!context)
+    if (!playerContext)
         return;
 
-    for (auto known : g_ringPlayerContexts)
-    {
-        if (known == context)
-            return;
-    }
-
-    for (auto& known : g_ringPlayerContexts)
-    {
-        if (!known)
-        {
-            known = context;
-            return;
-        }
-    }
-
-    // A stage can destroy and recreate a player object. Replacing the oldest
-    // slot keeps the list bounded without retaining an unbounded set of guest
-    // pointers across level transitions.
-    g_ringPlayerContexts[0] = g_ringPlayerContexts[1];
-    g_ringPlayerContexts[1] = context;
+    PPCRegister energy{};
+    energy.f32 = GetMaximumRingEnergy(ctx, base, playerContext);
+    PPC_STORE_U32(playerContext + PLAYER_RING_ENERGY_OFFSET, energy.u32);
 }
 
 static void TrackEvilSonicContext(uint32_t context)
@@ -132,9 +126,7 @@ void ResetScoreOnRestartMidAsmHook()
 PPC_FUNC_IMPL(__imp__sub_82318AA0);
 PPC_FUNC(sub_82318AA0)
 {
-    TrackRingPlayerContext(ctx.r3.u32);
-
-    if (IsInfiniteRingsEnabled())
+    if (Config::InfiniteRings)
         ctx.r4.u32 = 0;
 
     __imp__sub_82318AA0(ctx, base);
@@ -146,62 +138,95 @@ PPC_FUNC(sub_82318AA0)
 PPC_FUNC_IMPL(__imp__sub_8231FAE8);
 PPC_FUNC(sub_8231FAE8)
 {
-    TrackRingPlayerContext(ctx.r3.u32);
-
-    if (IsInfiniteRingsEnabled())
+    if (Config::InfiniteRings)
         ctx.r4.u32 = 0;
 
     __imp__sub_8231FAE8(ctx, base);
 }
 
-/* Ring setter guard. A few scripted damage/reset paths call the small setter
-   directly instead of going through one of the subtraction helpers above.
-   Keep legitimate gains and initialisation intact, but never accept a lower
-   value while Infinite Rings is enabled. This is shared by the daytime Sonic
-   and nighttime Werehog player contexts. */
+/* Ring getter/setter hooks. Keeping this entirely on the game's active call
+   path avoids retaining player pointers after a stage transition. */
+PPC_FUNC_IMPL(__imp__sub_82316B60);
+PPC_FUNC(sub_82316B60)
+{
+    __imp__sub_82316B60(ctx, base);
+
+    if (Config::InfiniteRings)
+        ctx.r3.u32 = INFINITE_RING_COUNT;
+}
+
 PPC_FUNC_IMPL(__imp__sub_82316B68);
 PPC_FUNC(sub_82316B68)
 {
-    TrackRingPlayerContext(ctx.r3.u32);
-
-    if (IsInfiniteRingsEnabled())
-    {
-        const auto currentRings = PPC_LOAD_U32(ctx.r3.u32 + 1336);
-        if (ctx.r4.u32 < currentRings)
-            ctx.r4.u32 = currentRings;
-    }
+    if (Config::InfiniteRings)
+        ctx.r4.u32 = INFINITE_RING_COUNT;
 
     __imp__sub_82316B68(ctx, base);
 }
 
-// Player ring initialisation. This runs when either daytime Sonic or the
-// Werehog context is created, before the first ring is collected or lost, so
-// the per-tick cheat pass can cover both forms from their first frame.
+/* Ring Energy getter/setter and modifier hooks. Ring Energy is a float at a
+   different field from the ring counter, and its maximum changes with the
+   player's level. */
+PPC_FUNC_IMPL(__imp__sub_82316B70);
+PPC_FUNC(sub_82316B70)
+{
+    const auto playerContext = ctx.r3.u32;
+    __imp__sub_82316B70(ctx, base);
+
+    if (Config::InfiniteRingEnergy)
+        ctx.f1.f64 = GetMaximumRingEnergy(ctx, base, playerContext);
+}
+
+PPC_FUNC_IMPL(__imp__sub_82316C70);
+PPC_FUNC(sub_82316C70)
+{
+    if (Config::InfiniteRingEnergy)
+        ctx.f1.f64 = GetMaximumRingEnergy(ctx, base, ctx.r3.u32);
+
+    __imp__sub_82316C70(ctx, base);
+}
+
+PPC_FUNC_IMPL(__imp__sub_8231C590);
+PPC_FUNC(sub_8231C590)
+{
+    const auto playerContext = ctx.r3.u32;
+    __imp__sub_8231C590(ctx, base);
+
+    if (Config::InfiniteRingEnergy)
+        FillRingEnergy(ctx, base, playerContext);
+}
+
+PPC_FUNC_IMPL(__imp__sub_8231C628);
+PPC_FUNC(sub_8231C628)
+{
+    const auto playerContext = ctx.r3.u32;
+    __imp__sub_8231C628(ctx, base);
+
+    if (Config::InfiniteRingEnergy)
+        FillRingEnergy(ctx, base, playerContext);
+}
+
+// Player ring/energy initialisation. The context is valid for the duration of
+// this call, so both cheats can start full without a persistent guest pointer.
 PPC_FUNC_IMPL(__imp__sub_8244EEF8);
 PPC_FUNC(sub_8244EEF8)
 {
-    TrackRingPlayerContext(ctx.r3.u32);
+    const auto playerContext = ctx.r3.u32;
     __imp__sub_8244EEF8(ctx, base);
+
+    if (Config::InfiniteRings)
+        PPC_STORE_U32(playerContext + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
+
+    if (Config::InfiniteRingEnergy)
+        FillRingEnergy(ctx, base, playerContext);
 }
 
 namespace PlayerPatches
 {
     void Update()
     {
-        if (!IsInfiniteRingsEnabled() && !Config::InfiniteJump && !Config::InfiniteUnleash)
+        if (!Config::InfiniteUnleash)
             return;
-
-        // Keep the ring counter at a high value after the original game tick.
-        // This covers direct stores used by scripted damage and checkpoint
-        // code, which do not call either subtraction helper.
-        if (IsInfiniteRingsEnabled())
-        {
-            for (auto context : g_ringPlayerContexts)
-            {
-                if (context)
-                    *reinterpret_cast<be<uint32_t>*>(g_memory.Translate(context + 1336)) = 999;
-            }
-        }
 
         // Keep the Werehog's Dark Gaia/Unleash gauge full from the first
         // frame and after every game tick.  These pointers are tracked only
@@ -219,24 +244,6 @@ namespace PlayerPatches
             }
         }
 
-        if (!Config::InfiniteJump)
-            return;
-
-        // The jump state consumes a tapped A input. Re-arm that edge while the
-        // player is holding A so both the Sonic and Werehog state machines can
-        // request another jump. We only do this after a player context has
-        // been observed, preventing title/menu navigation from auto-repeating.
-        if (!g_ringPlayerContexts[0] && !g_ringPlayerContexts[1])
-            return;
-
-        auto input = SWA::CInputState::GetInstance();
-        if (!input)
-            return;
-
-        auto& pad = const_cast<SWA::SPadState&>(input->GetPadState());
-        const uint32_t down = pad.DownState;
-        if (down & SWA::eKeyState_A)
-            pad.TappedState = static_cast<uint32_t>(pad.TappedState) | SWA::eKeyState_A;
     }
 }
 
@@ -309,9 +316,6 @@ PPC_FUNC(sub_823B49D8)
 {
     __imp__sub_823B49D8(ctx, base);
 
-    // Capture the Werehog context even before its first ring event so the
-    // jump helper is available immediately after entering a night stage.
-    TrackRingPlayerContext(ctx.r3.u32);
     TrackEvilSonicContext(ctx.r3.u32);
     if (Config::InfiniteUnleash)
     {
