@@ -172,6 +172,11 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
+      - name: Fix DXC permissions
+        run: |
+          chmod +x tools/XenosRecomp/thirdparty/dxc-bin/bin/x64/dxc-linux
+          ls -l tools/XenosRecomp/thirdparty/dxc-bin/bin/x64/dxc-linux
+
       - name: Build native libraries
         run: |
           cmake --build out/build/android-arm64 \
