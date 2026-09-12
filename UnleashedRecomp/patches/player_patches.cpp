@@ -5,6 +5,7 @@
 #include <app.h>
 #include <sdl_events.h>
 
+#include <algorithm>
 #include <array>
 
 static uint32_t g_lastEnemyScore;
@@ -12,6 +13,12 @@ static uint32_t g_lastTrickScore;
 static float g_lastDarkGaiaEnergy;
 static bool g_isUnleashCancelled;
 static std::array<uint32_t, 2> g_ringPlayerContexts{};
+static std::array<uint32_t, 2> g_evilSonicContexts{};
+
+static bool IsInfiniteRingsEnabled()
+{
+    return Config::InfiniteRings || Config::InfiniteRingEnergy;
+}
 
 static void TrackRingPlayerContext(uint32_t context)
 {
@@ -38,6 +45,39 @@ static void TrackRingPlayerContext(uint32_t context)
     // pointers across level transitions.
     g_ringPlayerContexts[0] = g_ringPlayerContexts[1];
     g_ringPlayerContexts[1] = context;
+}
+
+static void TrackEvilSonicContext(uint32_t context)
+{
+    if (!context)
+        return;
+
+    for (auto known : g_evilSonicContexts)
+    {
+        if (known == context)
+            return;
+    }
+
+    for (auto& known : g_evilSonicContexts)
+    {
+        if (!known)
+        {
+            known = context;
+            return;
+        }
+    }
+
+    g_evilSonicContexts[0] = g_evilSonicContexts[1];
+    g_evilSonicContexts[1] = context;
+}
+
+static void ForgetEvilSonicContext(uint32_t context)
+{
+    for (auto& known : g_evilSonicContexts)
+    {
+        if (known == context)
+            known = 0;
+    }
 }
 
 /* Hook function for when checkpoints are activated
@@ -94,7 +134,7 @@ PPC_FUNC(sub_82318AA0)
 {
     TrackRingPlayerContext(ctx.r3.u32);
 
-    if (Config::InfiniteRings)
+    if (IsInfiniteRingsEnabled())
         ctx.r4.u32 = 0;
 
     __imp__sub_82318AA0(ctx, base);
@@ -108,7 +148,7 @@ PPC_FUNC(sub_8231FAE8)
 {
     TrackRingPlayerContext(ctx.r3.u32);
 
-    if (Config::InfiniteRings)
+    if (IsInfiniteRingsEnabled())
         ctx.r4.u32 = 0;
 
     __imp__sub_8231FAE8(ctx, base);
@@ -124,7 +164,7 @@ PPC_FUNC(sub_82316B68)
 {
     TrackRingPlayerContext(ctx.r3.u32);
 
-    if (Config::InfiniteRings)
+    if (IsInfiniteRingsEnabled())
     {
         const auto currentRings = PPC_LOAD_U32(ctx.r3.u32 + 1336);
         if (ctx.r4.u32 < currentRings)
@@ -148,18 +188,34 @@ namespace PlayerPatches
 {
     void Update()
     {
-        if (!Config::InfiniteRings && !Config::InfiniteJump)
+        if (!IsInfiniteRingsEnabled() && !Config::InfiniteJump && !Config::InfiniteUnleash)
             return;
 
         // Keep the ring counter at a high value after the original game tick.
         // This covers direct stores used by scripted damage and checkpoint
         // code, which do not call either subtraction helper.
-        if (Config::InfiniteRings)
+        if (IsInfiniteRingsEnabled())
         {
             for (auto context : g_ringPlayerContexts)
             {
                 if (context)
                     PPC_STORE_U32(context + 1336, 999);
+            }
+        }
+
+        // Keep the Werehog's Dark Gaia/Unleash gauge full from the first
+        // frame and after every game tick.  These pointers are tracked only
+        // for CEvilSonicContext instances, so daytime Sonic is unaffected.
+        if (Config::InfiniteUnleash)
+        {
+            for (auto context : g_evilSonicContexts)
+            {
+                if (context)
+                {
+                    auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(context);
+                    if (pEvilSonicContext)
+                        pEvilSonicContext->m_DarkGaiaEnergy = 100.0f;
+                }
             }
         }
 
@@ -190,7 +246,21 @@ PPC_FUNC(sub_823AF7A8)
 {
     auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(ctx.r3.u32);
 
+    if (!pEvilSonicContext)
+    {
+        __imp__sub_823AF7A8(ctx, base);
+        return;
+    }
+
+    TrackEvilSonicContext(ctx.r3.u32);
+
     g_lastDarkGaiaEnergy = pEvilSonicContext->m_DarkGaiaEnergy;
+
+    // A negative delta is energy drain.  Ignore it while Infinite Unleash is
+    // active; the update pass below also restores the full gauge after any
+    // direct stores performed by scripts or the HUD.
+    if (Config::InfiniteUnleash && ctx.f1.f64 < 0.0)
+        ctx.f1.f64 = 0.0;
 
     // Don't drain energy if out of control.
     if (Config::FixUnleashOutOfControlDrain && pEvilSonicContext->m_OutOfControlCount && ctx.f1.f64 < 0.0)
@@ -198,7 +268,15 @@ PPC_FUNC(sub_823AF7A8)
 
     __imp__sub_823AF7A8(ctx, base);
 
-    if (!Config::AllowCancellingUnleash)
+    if (Config::InfiniteUnleash)
+    {
+        // Restore immediately as well as in PlayerPatches::Update so code
+        // that reads the gauge later in this same tick sees it as full.
+        pEvilSonicContext->m_DarkGaiaEnergy = 100.0f;
+        return;
+    }
+
+    if (!Config::AllowCancellingUnleash || Config::InfiniteUnleash)
         return;
 
     auto pInputState = SWA::CInputState::GetInstance();
@@ -234,6 +312,12 @@ PPC_FUNC(sub_823B49D8)
     // Capture the Werehog context even before its first ring event so the
     // jump helper is available immediately after entering a night stage.
     TrackRingPlayerContext(ctx.r3.u32);
+    TrackEvilSonicContext(ctx.r3.u32);
+    if (Config::InfiniteUnleash)
+    {
+        if (auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(ctx.r3.u32))
+            pEvilSonicContext->m_DarkGaiaEnergy = 100.0f;
+    }
     App::s_isWerehog = true;
 
     SDL_User_EvilSonic(true);
@@ -244,6 +328,8 @@ PPC_FUNC_IMPL(__imp__sub_823B4590);
 PPC_FUNC(sub_823B4590)
 {
     __imp__sub_823B4590(ctx, base);
+
+    ForgetEvilSonicContext(ctx.r3.u32);
 
     App::s_isWerehog = false;
 

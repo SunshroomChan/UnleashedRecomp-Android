@@ -120,7 +120,9 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, FixEggmanlandUsingEventGalleryTransition, fa
 CONFIG_DEFINE_HIDDEN("Codes", bool, FixUnleashOutOfControlDrain, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HomingAttackOnJump, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteRings, false);
+CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteRingEnergy, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteJump, false);
+CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteUnleash, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HUDToggleKey, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, SaveScoreAtCheckpoints, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, SkipIntroLogos, false);

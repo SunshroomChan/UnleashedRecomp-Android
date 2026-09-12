@@ -5,7 +5,8 @@
 - Refreshed the Android launcher, mod screens and controls with a modern Material-style interface while restoring the classic Sonic application icon.
 - Added a standalone touch-control editor that works before game files are installed, with per-control position, size and opacity plus version 1 layout migration.
 - Added an optional direct external-folder mode so large game dumps and saves can remain in shared storage across uninstall/reinstall; the permission-free ZIP/folder importer remains available.
-- Added built-in Infinite Rings protection across normal damage, ring-drop and direct setter paths, plus an experimental Infinite Jump hold-to-rearm toggle for both Sonic forms; selections are saved with the mod database.
+- Added built-in Infinite Rings and Infinite Ring Energy protection across normal damage, ring-drop and direct setter paths, plus an experimental Infinite Jump hold-to-rearm toggle for both Sonic forms.
+- Added an Infinite Unleash toggle that keeps the Werehog's Dark Gaia gauge full from stage start and prevents drain/cancellation; selections are saved with the mod database.
 
 ## 0.5.2 (2026-07-13)
 
