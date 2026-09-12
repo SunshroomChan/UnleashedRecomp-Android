@@ -8,12 +8,15 @@
 # The private repository must contain default.xex, default.xexp and shader.ar
 # at its root. See docs/ci.md for details.
 #
-# Optional release signing (falls back to a debug build when unset):
+# Required release signing (the workflow fails instead of producing an ephemeral debug build):
 #   - secret `ANDROID_KEYSTORE_BASE64`   - keystore file, base64-encoded
 #   - secret `ANDROID_KEYSTORE_PASSWORD`
 #   - secret `ANDROID_KEY_ALIAS`
 #   - secret `ANDROID_KEY_PASSWORD`
 name: Android APK
+
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
@@ -38,7 +41,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
+      - name: Validate private inputs and release signing
+        env:
+          GAME_FILES_REPO: ${{ vars.GAME_FILES_REPO }}
+          GAME_FILES_TOKEN: ${{ secrets.GAME_FILES_TOKEN }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=()
+          for name in GAME_FILES_REPO GAME_FILES_TOKEN ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then missing+=("$name"); fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            printf '::error::Missing required Actions variable/secret: %s\n' "${missing[*]}"
+            exit 1
+          fi
+
       - name: Restore XenosRecomp dependencies
         shell: bash
         run: |
@@ -206,19 +228,28 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
-            export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/keystore.jks"
-            ./gradlew --no-daemon assembleRelease
-          else
-            ./gradlew --no-daemon assembleDebug
-          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/keystore.jks"
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Verify release APK
+        run: |
+          apk=android-apk/app/build/outputs/apk/release/app-release.apk
+          test -f "$apk"
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          "$build_tools/apksigner" verify --verbose "$apk"
+          for lib in libmain.so libmain_hook.so libfile_redirect_hook.so libgsl_alloc_hook.so libhook_impl.so; do
+            unzip -l "$apk" "lib/arm64-v8a/$lib" | grep -q "lib/arm64-v8a/$lib" || {
+              echo "::error::Missing native library $lib"
+              exit 1
+            }
+          done
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: UnleashedRecomp-Android-${{ github.ref_name }}
-          path: android-apk/app/build/outputs/apk/**/*.apk
+          path: android-apk/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
       - name: Attach APK to release
@@ -226,6 +257,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          find android-apk/app/build/outputs/apk -name '*.apk' -print0 |
-            xargs -0 gh release upload "$GITHUB_REF_NAME" --clobber || \
-            echo "No release for $GITHUB_REF_NAME yet; APK stays available as a workflow artifact."
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" \
+            android-apk/app/build/outputs/apk/release/app-release.apk --clobber

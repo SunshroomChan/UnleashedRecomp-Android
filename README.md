@@ -51,7 +51,8 @@ For the smoothest first run, start with the default graphics settings. The Andro
 1. Download the latest APK from the repository's [Releases](https://github.com/SansNope/UnleashedRecomp-Android/releases) page.
 2. Allow your browser or file manager to install apps from unknown sources when Android asks.
 3. Install and open **UnleashedRecomp**. The first launch creates the app's folders and prepares the bundled graphics driver.
-4. Tap **Install game files (.zip / folder)** in the launcher and pick your game dump — either a ZIP archive or an extracted folder. The app finds the game inside the archive automatically, however the folders are nested, and copies everything into place with a progress display. You can also choose **ISO / update / DLC packages**, select the base game, title update and optional DLC files together, then launch once to verify and install them.
+4. For a large extracted dump, keep it in a shared folder outside `Android/` (for example `Internal storage/Games/UnleashedRecomp`), tap **Use external folder**, grant Android's **All files access**, and select that folder. The engine uses it directly without making another copy. The selected folder must contain `game/default.xex` and `update/default.xexp`. Because the data is in shared storage, uninstalling the app does not remove it; after reinstalling, simply select the same folder again.
+   Alternatively, tap **Install game files (.zip / folder)** to use the permission-free importer. It finds a nested game dump and copies it into app-managed storage with progress reporting. You can also choose **ISO / update / DLC packages**, select the base game, title update and optional DLC files together, then launch once to verify and install them.
 5. Tap **Launch game**.
 
 A raw dump (`game` + `update`, with optional `dlc`) is enough: if the `patched` folder produced by the desktop installer is missing, the app builds the patched executable itself on first launch. No PC is required at any point.
@@ -60,7 +61,7 @@ A raw dump (`game` + `update`, with optional `dlc`) is enough: if the `patched` 
 <summary>Manual installation (alternative)</summary>
 
 - Open Android's Files app, choose **Unleashed Recomp game files**, and copy the `game`, `update`, and optional `dlc` folders from your dump into the folder shown by the app.
-- If your file manager cannot see `Android/data`, put the same folders into `Android/media/com.sega.sonicunr/UnleashedRecomp/` instead — that folder is browsable by regular file managers and the app picks it up automatically. Driver packages can likewise go into `Android/media/com.sega.sonicunr/driver_import/`.
+- If your file manager cannot see `Android/data`, put the same folders into `Android/media/com.sega.sonicunr/UnleashedRecomp/` instead — that folder is browsable by regular file managers and the app picks it up automatically. Note that Android treats both locations as app-specific and may remove them on uninstall. Driver packages can likewise go into `Android/media/com.sega.sonicunr/driver_import/`.
 - Do not use `adb push` directly into `Android/data`. Files created there by the shell can receive ownership that prevents the app from reading them.
 
 </details>
@@ -149,7 +150,7 @@ These options make separately downloaded "low end" texture packs unnecessary for
 
 ### The game cannot find my files
 
-Use **Install game files (.zip / folder)** in the launcher — it locates the game inside your dump automatically and reports what is missing. If you copied files manually, make sure the selected directory contains `game`, `update`, and, if available, `dlc`, in the Files location exposed by **UnleashedRecomp**, not an arbitrary folder with the same name.
+For direct-folder mode, grant **All files access** and select a local shared-storage folder (not a cloud provider and not anything under `Android/`) that directly contains `game/default.xex` and `update/default.xexp`. Otherwise, use **Install game files (.zip / folder)**; the importer locates the game inside the dump automatically and reports what is missing.
 
 ### The game opens to a black screen or corrupted graphics
 

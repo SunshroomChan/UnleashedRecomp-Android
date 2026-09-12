@@ -1,14 +1,19 @@
 package org.libsdl.app;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -47,6 +52,8 @@ public final class LauncherActivity extends Activity {
     private static final int REQUEST_MOD_ZIP = 1004;
     private static final int REQUEST_MOD_TREE = 1005;
     private static final int REQUEST_GAME_PACKAGES = 1006;
+    private static final int REQUEST_EXTERNAL_GAME_ROOT = 1007;
+    private static final int REQUEST_STORAGE_PERMISSION = 1008;
     private static final int DRIVER_EXPERIMENTAL_A725 = 4;
     private static final int DRIVER_IMPORTED = 5;
     private static final int RENDER_MODE_SYSMEM = 2;
@@ -62,6 +69,7 @@ public final class LauncherActivity extends Activity {
     };
 
     private TextView installStatus;
+    private TextView storageStatus;
     private TextView driverStatus;
     private TextView diagnosticsStatus;
     private TextView updateStatus;
@@ -76,6 +84,7 @@ public final class LauncherActivity extends Activity {
     private SharedPreferences prefs;
     private InstallState lastInstallState;
     private MaterialUi ui;
+    private boolean chooseExternalFolderAfterPermission;
 
     private static final class InstallState {
         final boolean ready;
@@ -102,6 +111,14 @@ public final class LauncherActivity extends Activity {
         super.onResume();
         UpdateManager.resumePendingInstall(this);
         refreshStatuses();
+        if (chooseExternalFolderAfterPermission) {
+            chooseExternalFolderAfterPermission = false;
+            if (hasDirectStorageAccess()) {
+                openExternalGameRootPicker();
+            } else {
+                showError(getString(R.string.error_external_storage_permission));
+            }
+        }
     }
 
     private View buildPage() {
@@ -141,6 +158,14 @@ public final class LauncherActivity extends Activity {
         LinearLayout files = card(R.string.launcher_game_files);
         installStatus = statusText();
         files.addView(installStatus);
+        storageStatus = statusText();
+        files.addView(storageStatus);
+        LinearLayout storageButtons = row();
+        storageButtons.addView(button(R.string.launcher_use_external_folder,
+            view -> chooseExternalGameRoot()), weighted());
+        storageButtons.addView(button(R.string.launcher_use_managed_folder,
+            view -> clearExternalGameRoot()), weighted());
+        files.addView(storageButtons);
         files.addView(button(R.string.launcher_install_game, view -> chooseInstallSource(true)));
         LinearLayout fileButtons = row();
         fileButtons.addView(button(R.string.launcher_open_files, view -> openFiles("game")), weighted());
@@ -227,6 +252,13 @@ public final class LauncherActivity extends Activity {
         installStatus.setTextColor(lastInstallState.ready ? ui.success
             : stagedInstall ? ui.warning : ui.error);
         playButton.setEnabled(lastInstallState.ready || stagedInstall);
+
+        File selectedRoot = AppStorage.selectedGameRoot(this);
+        File activeRoot = AppStorage.activeGameRoot(this);
+        storageStatus.setText(getString(selectedRoot != null
+            ? R.string.launcher_storage_external : R.string.launcher_storage_managed,
+            activeRoot.getPath()));
+        storageStatus.setTextColor(selectedRoot != null ? ui.success : ui.muted);
 
         File installedMarker = new File(getFilesDir(), "turnip/last_imported_driver.txt");
         File recoveryMarker = new File(getFilesDir(), "turnip/vulkan_startup_state.txt");
@@ -361,6 +393,81 @@ public final class LauncherActivity extends Activity {
         startActivityForResult(intent, REQUEST_DRIVER);
     }
 
+    private void chooseExternalGameRoot() {
+        if (hasDirectStorageAccess()) {
+            openExternalGameRootPicker();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.external_storage_permission_title)
+            .setMessage(R.string.external_storage_permission_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.external_storage_continue, (dialog, which) -> {
+                chooseExternalFolderAfterPermission = true;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                    try {
+                        startActivity(intent);
+                    } catch (Exception exception) {
+                        startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+                    }
+                } else {
+                    requestPermissions(new String[] {
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    }, REQUEST_STORAGE_PERMISSION);
+                }
+            })
+            .show();
+    }
+
+    private boolean hasDirectStorageAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void openExternalGameRootPicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(intent, REQUEST_EXTERNAL_GAME_ROOT);
+    }
+
+    private void clearExternalGameRoot() {
+        if (AppStorage.selectedGameRoot(this) == null) {
+            Toast.makeText(this, R.string.managed_storage_already_active, Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.use_managed_storage_title)
+            .setMessage(R.string.use_managed_storage_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                AppStorage.clearSelectedGameRoot(this);
+                loadSettings();
+                refreshStatuses();
+            })
+            .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_STORAGE_PERMISSION) return;
+        chooseExternalFolderAfterPermission = false;
+        if (hasDirectStorageAccess()) {
+            openExternalGameRootPicker();
+        } else {
+            showError(getString(R.string.error_external_storage_permission));
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -371,6 +478,9 @@ public final class LauncherActivity extends Activity {
         }
         if (data.getData() == null) return;
         switch (requestCode) {
+            case REQUEST_EXTERNAL_GAME_ROOT:
+                selectExternalGameRoot(data);
+                return;
             case REQUEST_GAME_ZIP:
                 startInstall(data.getData(), true, true);
                 return;
@@ -416,6 +526,71 @@ public final class LauncherActivity extends Activity {
             target.delete();
             showError(getString(R.string.error_driver_copy, exception.getMessage()));
         }
+    }
+
+    private void selectExternalGameRoot(Intent data) {
+        Uri tree = data.getData();
+        if (tree == null) return;
+        int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION |
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+        try {
+            getContentResolver().takePersistableUriPermission(tree, flags);
+        } catch (SecurityException ignored) {
+            // Raw access is authorized separately by All files access.
+        }
+
+        try {
+            File selected = resolveExternalStorageTree(tree);
+            File nested = new File(selected, "UnleashedRecomp");
+            if (!hasRequiredGameFiles(selected) && hasRequiredGameFiles(nested)) {
+                selected = nested;
+            }
+            if (!hasRequiredGameFiles(selected)) {
+                throw new IOException(getString(R.string.error_external_folder_contents));
+            }
+
+            String normalized = selected.getCanonicalPath().replace('\\', '/');
+            if (normalized.contains("/Android/data/") || normalized.contains("/Android/obb/")
+                    || normalized.contains("/Android/media/")) {
+                throw new IOException(getString(R.string.error_external_folder_app_specific));
+            }
+
+            File probe = new File(selected, ".unleashed_write_probe");
+            if (!probe.createNewFile() && !probe.isFile()) {
+                throw new IOException(getString(R.string.error_external_folder_read_only));
+            }
+            if (!probe.delete()) probe.deleteOnExit();
+
+            AppStorage.selectGameRoot(this, selected);
+            loadSettings();
+            refreshStatuses();
+            Toast.makeText(this, getString(R.string.external_folder_selected,
+                selected.getPath()), Toast.LENGTH_LONG).show();
+        } catch (Exception exception) {
+            String reason = exception.getMessage() != null
+                ? exception.getMessage() : exception.getClass().getSimpleName();
+            showError(getString(R.string.error_external_folder, reason));
+        }
+    }
+
+    private static boolean hasRequiredGameFiles(File root) {
+        return new File(root, "game/default.xex").isFile()
+            && new File(root, "update/default.xexp").isFile();
+    }
+
+    private File resolveExternalStorageTree(Uri tree) throws IOException {
+        if (!"com.android.externalstorage.documents".equals(tree.getAuthority())) {
+            throw new IOException(getString(R.string.error_external_folder_local_only));
+        }
+        String documentId = DocumentsContract.getTreeDocumentId(tree);
+        int separator = documentId.indexOf(':');
+        String volumeId = separator >= 0 ? documentId.substring(0, separator) : documentId;
+        String relative = separator >= 0 ? documentId.substring(separator + 1) : "";
+        File volume = "primary".equalsIgnoreCase(volumeId)
+            ? Environment.getExternalStorageDirectory()
+            : new File("/storage", volumeId);
+        File result = relative.isEmpty() ? volume : new File(volume, relative);
+        return result.getCanonicalFile();
     }
 
     // ------------------------------------------------------------------
@@ -593,6 +768,12 @@ public final class LauncherActivity extends Activity {
     }
 
     private void startInstall(Uri source, boolean isZip, boolean gameFiles) {
+        if (!isZip && gameFiles && treeIsActiveGameRoot(source)) {
+            Toast.makeText(this, R.string.install_source_already_active, Toast.LENGTH_LONG).show();
+            refreshStatuses();
+            return;
+        }
+
         InstallProgress progress = new InstallProgress();
         progress.label = text(getString(R.string.install_scanning), 15, false);
         progress.label.setPadding(dp(20), dp(16), dp(20), dp(16));
@@ -637,6 +818,18 @@ public final class LauncherActivity extends Activity {
                 finishInstall(progress, getString(R.string.error_install_failed, reason), false);
             }
         }, "installer").start();
+    }
+
+    /** Avoid truncating files if the user asks the copier to import its own direct root. */
+    private boolean treeIsActiveGameRoot(Uri tree) {
+        try {
+            File selected = resolveExternalStorageTree(tree);
+            File nested = new File(selected, "UnleashedRecomp");
+            if (!hasRequiredGameFiles(selected) && hasRequiredGameFiles(nested)) selected = nested;
+            return selected.getCanonicalFile().equals(AppStorage.activeGameRoot(this).getCanonicalFile());
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private void finishInstall(InstallProgress progress, String message, boolean success) {
@@ -1025,6 +1218,10 @@ public final class LauncherActivity extends Activity {
         if (stringId == R.string.launcher_install_game || stringId == R.string.launcher_install_mod
                 || stringId == R.string.launcher_import_driver) {
             return R.drawable.ic_action_download;
+        }
+        if (stringId == R.string.launcher_use_external_folder
+                || stringId == R.string.launcher_use_managed_folder) {
+            return R.drawable.ic_action_folder;
         }
         if (stringId == R.string.launcher_manage_mods) return R.drawable.ic_action_extension;
         if (stringId == R.string.launcher_edit_layout) return R.drawable.ic_action_tune;

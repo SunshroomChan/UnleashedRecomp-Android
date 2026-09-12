@@ -26,8 +26,9 @@ import java.util.List;
  *
  * Android 11+ deliberately hides Android/data from ordinary file managers. This provider
  * exposes the same active game root selected by native storage_android.cpp, plus the external
- * transfer directory containing driver_import, logs and GFXReconstruct captures. No broad
- * storage permission is needed and paths outside these two app-owned roots cannot be resolved.
+ * transfer directory containing driver_import, logs and GFXReconstruct captures. The optional
+ * direct-folder mode may point this root at user-selected shared storage; paths outside the
+ * explicitly exported roots still cannot be resolved through this provider.
  */
 public final class UnleashedDocumentsProvider extends DocumentsProvider {
     private static final String TAG = "UnleashedDocuments";

@@ -21,11 +21,11 @@ public repository: `default.xex`, `default.xexp` and `shader.ar`. Keep them in a
 Note that a private repository limits distribution but does not change the legal
 status of game-derived data; keep access to it minimal.
 
-## Optional release signing
+## Required release signing
 
-Without signing secrets the workflow produces a **debug** APK (signed with the
-runner's debug key — installable, but a different signature every run). To get a
-release APK signed with a stable key, add these secrets:
+The workflow deliberately fails when signing secrets are missing; it never falls
+back to a runner-generated debug key. Add these secrets to produce a release APK
+signed with the same stable key on every run:
 
 | Secret | Value |
 | --- | --- |
@@ -52,9 +52,9 @@ Remember that installs only update in place when the signing key stays the same.
    `libfile_redirect_hook.so`, `libgsl_alloc_hook.so`, `libhook_impl.so`) from
    the vendored sources and stages all native libraries into
    `android-apk/app/src/main/jniLibs/arm64-v8a/`.
-5. Runs Gradle (`assembleRelease` when signing secrets are present, otherwise
-   `assembleDebug`) and uploads the APK as a workflow artifact. On tag builds it
-   also attaches the APK to the matching GitHub release when one exists.
+5. Runs Gradle `assembleRelease`, verifies the APK signature and all five native
+   libraries, then uploads the APK as a workflow artifact. Tag builds create the
+   matching GitHub release when necessary and attach the APK to it.
 
 Both CMake passes use ccache and the vcpkg binary cache; the first run is slow
 (the ~265 generated `ppc_recomp.*.cpp` translation units dominate), repeat runs

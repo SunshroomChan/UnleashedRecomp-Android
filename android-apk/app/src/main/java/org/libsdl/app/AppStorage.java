@@ -2,10 +2,18 @@ package org.libsdl.app;
 
 import android.content.Context;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /** Paths shared by the launcher, document provider and native Android storage policy. */
 final class AppStorage {
+    private static final String SELECTED_ROOT_FILE = "selected_game_root.txt";
+
     private AppStorage() {}
 
     /**
@@ -18,8 +26,37 @@ final class AppStorage {
         return (dirs != null && dirs.length > 0) ? dirs[0] : null;
     }
 
-    /** Mirrors the native GetDataRoot(): internal → Android/data → Android/media, populated wins. */
+    /** A user-selected shared-storage root, also consumed by native storage_android.cpp. */
+    static File selectedGameRoot(Context context) {
+        File marker = new File(context.getFilesDir(), SELECTED_ROOT_FILE);
+        if (!marker.isFile()) return null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(marker), StandardCharsets.UTF_8))) {
+            String path = reader.readLine();
+            if (path == null || path.trim().isEmpty()) return null;
+            return new File(path.trim()).getCanonicalFile();
+        } catch (IOException ignored) {
+            return null;
+        }
+    }
+
+    static void selectGameRoot(Context context, File directory) throws IOException {
+        File canonical = directory.getCanonicalFile();
+        File marker = new File(context.getFilesDir(), SELECTED_ROOT_FILE);
+        try (FileOutputStream output = new FileOutputStream(marker, false)) {
+            output.write((canonical.getPath() + "\n").getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    static void clearSelectedGameRoot(Context context) {
+        new File(context.getFilesDir(), SELECTED_ROOT_FILE).delete();
+    }
+
+    /** Mirrors native GetDataRoot(): selected shared folder, then populated legacy locations. */
     static File activeGameRoot(Context context) {
+        File selected = selectedGameRoot(context);
+        if (selected != null) return selected;
+
         File internal = new File(context.getFilesDir(), "UnleashedRecomp");
         if (new File(internal, "game").isDirectory()) {
             return internal;

@@ -7,6 +7,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <string>
 
 namespace os::android
 {
@@ -82,6 +84,21 @@ namespace os::android
         static std::filesystem::path root = []() -> std::filesystem::path
         {
             std::error_code ec;
+
+            // The launcher can persist a raw shared-storage path after the user grants
+            // Android's All files access permission. Unlike Android/data and Android/media,
+            // this folder survives uninstall; after reinstall the user only selects it again.
+            if (!GetInternalFilesDir().empty())
+            {
+                std::ifstream selectedRootFile(GetInternalFilesDir() / "selected_game_root.txt");
+                std::string selectedRoot;
+                if (std::getline(selectedRootFile, selectedRoot) && !selectedRoot.empty())
+                {
+                    std::filesystem::path selected(selectedRoot);
+                    if (std::filesystem::exists(selected / "game", ec) && ProbeDirWritable(selected))
+                        return selected;
+                }
+            }
 
             // Legacy layout: game files pushed over adb straight into internal app storage.
             // Keep using it when populated so existing installs are unaffected. Resolved at
