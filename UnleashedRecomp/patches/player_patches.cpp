@@ -19,6 +19,12 @@ static constexpr uint32_t PLAYER_RING_COUNT_OFFSET = 1336;
 static constexpr uint32_t PLAYER_RING_ENERGY_OFFSET = 1340;
 static constexpr uint32_t INFINITE_RING_COUNT = 999;
 
+static void StoreGuestU32(uint32_t address, uint32_t value)
+{
+    if (auto pValue = reinterpret_cast<be<uint32_t>*>(g_memory.Translate(address)))
+        *pValue = value;
+}
+
 static bool IsInfiniteJumpTap()
 {
     if (!Config::InfiniteJump)
@@ -288,7 +294,7 @@ namespace PlayerPatches
                     if (Config::InfiniteUnleash)
                         pEvilSonicContext->m_DarkGaiaEnergy = 100.0f;
                     if (Config::InfiniteRings)
-                        PPC_STORE_U32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
+                        StoreGuestU32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
                 }
             }
         }
@@ -302,7 +308,7 @@ namespace PlayerPatches
             for (auto context : g_playerContexts)
             {
                 if (context && g_memory.Translate(context))
-                    PPC_STORE_U32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
+                    StoreGuestU32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
             }
         }
 
