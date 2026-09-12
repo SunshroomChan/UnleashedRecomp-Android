@@ -58,8 +58,6 @@
     <string name="error_game_partial">L\'installation est incomplète ou endommagée. Fichiers requis manquants :%1$s\n\nRacine attendue :\n%2$s</string>
     <string name="error_game_nested">Les fichiers du jeu semblent imbriqués dans le mauvais dossier (%1$s). Déplacez les dossiers game, update, patched et éventuellement dlc directement dans :\n%2$s</string>
     <string name="error_settings_save">Impossible d\'enregistrer les paramètres : %1$s</string>
-    <string name="error_layout_editor">Impossible de démarrer l\'éditeur de disposition : %1$s</string>
-    <string name="error_layout_requires_game">L\'éditeur de disposition utilise le moteur de rendu du jeu, une installation valide du jeu est donc requise.</string>
     <string name="error_driver_extension">Choisissez un fichier Vulkan .so simple ou un paquet .zip AdrenoTools/ExynosTools.</string>
     <string name="error_driver_copy">Impossible d\'importer le pilote : %1$s</string>
     <string name="error_open_files">Fichiers Android n\'a pas pu ouvrir le dossier de l\'application.</string>
@@ -94,11 +92,16 @@
     <string name="documents_save_title">Sauvegardes Unleashed Recomp</string>
     <string name="documents_save_summary">Données de sauvegarde (SYS-DATA) et sauvegardes par mod</string>
     <string name="launcher_open_saves">Ouvrir le dossier des sauvegardes</string>
-    <string name="launcher_controls_moved">Les commandes tactiles, la caméra et le stick ont été déplacés dans le menu des options du jeu (Entrée). Réglez-les directement en jeu.</string>
+    <string name="launcher_controls_moved">Organisez les commandes tactiles sans installer les fichiers du jeu. Réglez séparément la position, la taille et l’opacité de chaque commande.</string>
     <string name="launcher_force_bc">Forcer les textures BC natives (désactiver le transcodage ETC2 ; uniquement pour les GPU compatibles BC)</string>
     <string name="mod_manager_codes">Codes</string>
     <string name="mod_manager_codes_hint">Correctifs intégrés appliqués au démarrage. Enregistrés avec la liste des mods ; redémarrez le jeu pour les appliquer.</string>
     <string name="launcher_localization">Localisation par les fans</string>
     <string name="launcher_localization_none">Aucune (jeu original)</string>
     <string name="launcher_localization_summary">Sélectionnez un paquet optionnel dans localizations/. Ses fichiers remplacent les ressources correspondantes de la langue de base sans modifier les fichiers du jeu.</string>
+    <string name="mod_manager_move_up">Déplacer %1$s vers le haut</string>
+    <string name="mod_manager_move_down">Déplacer %1$s vers le bas</string>
+    <string name="touch_editor_title">Disposition des commandes tactiles</string>
+    <string name="touch_editor_saved">Disposition tactile enregistrée.</string>
+    <string name="touch_editor_save_error">Impossible d’enregistrer la disposition tactile : %1$s</string>
 </resources>

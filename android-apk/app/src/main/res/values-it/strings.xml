@@ -58,8 +58,6 @@
     <string name="error_game_partial">L\'installazione è incompleta o danneggiata. File richiesti mancanti:%1$s\n\nRadice prevista:\n%2$s</string>
     <string name="error_game_nested">I file di gioco sembrano annidati nella cartella sbagliata (%1$s). Sposta le cartelle game, update, patched ed eventualmente dlc direttamente in:\n%2$s</string>
     <string name="error_settings_save">Impossibile salvare le impostazioni: %1$s</string>
-    <string name="error_layout_editor">Impossibile avviare l\'editor del layout: %1$s</string>
-    <string name="error_layout_requires_game">L\'editor del layout usa il renderer del gioco, quindi è richiesta un\'installazione valida del gioco.</string>
     <string name="error_driver_extension">Scegli un semplice file Vulkan .so o un pacchetto .zip AdrenoTools/ExynosTools.</string>
     <string name="error_driver_copy">Impossibile importare il driver: %1$s</string>
     <string name="error_open_files">File di Android non ha potuto aprire la cartella dell\'applicazione.</string>
@@ -94,11 +92,16 @@
     <string name="documents_save_title">Salvataggi di Unleashed Recomp</string>
     <string name="documents_save_summary">Dati di salvataggio (SYS-DATA) e salvataggi per mod</string>
     <string name="launcher_open_saves">Apri cartella salvataggi</string>
-    <string name="launcher_controls_moved">I controlli su schermo, la telecamera e lo stick sono stati spostati nel menu opzioni di gioco (Controlli). Regolali lì durante il gioco.</string>
+    <string name="launcher_controls_moved">Disponi i controlli touch senza installare i file di gioco. Regola separatamente posizione, dimensione e opacità di ogni controllo.</string>
     <string name="launcher_force_bc">Forza texture BC native (disattiva la transcodifica ETC2; solo per GPU che supportano BC)</string>
     <string name="mod_manager_codes">Codici</string>
     <string name="mod_manager_codes_hint">Patch integrate applicate all\'avvio. Salvate con l\'elenco dei mod; riavvia il gioco per applicarle.</string>
     <string name="launcher_localization">Localizzazione dei fan</string>
     <string name="launcher_localization_none">Nessuna (gioco originale)</string>
     <string name="launcher_localization_summary">Seleziona un pacchetto opzionale da localizations/. I suoi file sostituiscono le risorse della lingua di base corrispondente senza modificare il dump del gioco.</string>
+    <string name="mod_manager_move_up">Sposta %1$s su</string>
+    <string name="mod_manager_move_down">Sposta %1$s giù</string>
+    <string name="touch_editor_title">Layout dei controlli touch</string>
+    <string name="touch_editor_saved">Layout dei controlli touch salvato.</string>
+    <string name="touch_editor_save_error">Impossibile salvare il layout touch: %1$s</string>
 </resources>

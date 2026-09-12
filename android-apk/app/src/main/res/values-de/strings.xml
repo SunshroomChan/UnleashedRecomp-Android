@@ -58,8 +58,6 @@
     <string name="error_game_partial">Die Installation ist unvollständig oder beschädigt. Fehlende erforderliche Dateien:%1$s\n\nErwartetes Stammverzeichnis:\n%2$s</string>
     <string name="error_game_nested">Die Spieldateien scheinen im falschen Ordner verschachtelt zu sein (%1$s). Verschiebe die Ordner game, update, patched und optional dlc direkt nach:\n%2$s</string>
     <string name="error_settings_save">Einstellungen konnten nicht gespeichert werden: %1$s</string>
-    <string name="error_layout_editor">Der Layout-Editor konnte nicht gestartet werden: %1$s</string>
-    <string name="error_layout_requires_game">Der Layout-Editor verwendet den Spiel-Renderer, daher ist eine gültige Spielinstallation erforderlich.</string>
     <string name="error_driver_extension">Wähle eine einfache Vulkan-.so-Datei oder ein AdrenoTools/ExynosTools-.zip-Paket.</string>
     <string name="error_driver_copy">Treiber konnte nicht importiert werden: %1$s</string>
     <string name="error_open_files">Android-Dateien konnte den App-Ordner nicht öffnen.</string>
@@ -94,11 +92,16 @@
     <string name="documents_save_title">Unleashed Recomp Spielstände</string>
     <string name="documents_save_summary">Speicherdaten (SYS-DATA) und Mod-Speicherstände</string>
     <string name="launcher_open_saves">Speicherordner öffnen</string>
-    <string name="launcher_controls_moved">Bildschirmsteuerung, Kamera und Stick befinden sich jetzt im Optionsmenü im Spiel (Eingabe). Passe sie dort während des Spielens an.</string>
+    <string name="launcher_controls_moved">Ordne die Touch-Steuerung auch ohne installierte Spieldateien an. Position, Größe und Transparenz lassen sich für jedes Element einzeln einstellen.</string>
     <string name="launcher_force_bc">Native BC-Texturen erzwingen (ETC2-Transcode deaktivieren; nur für GPUs mit BC-Unterstützung)</string>
     <string name="mod_manager_codes">Codes</string>
     <string name="mod_manager_codes_hint">Integrierte Patches, die beim Start angewendet werden. Werden mit der Mod-Liste gespeichert; starte das Spiel neu, um sie anzuwenden.</string>
     <string name="launcher_localization">Fan-Lokalisierung</string>
     <string name="launcher_localization_none">Keine (Originalspiel)</string>
     <string name="launcher_localization_summary">Wähle ein optionales Paket aus localizations/. Seine Dateien überschreiben die passenden Ressourcen der Basissprache, ohne den Spiel-Dump zu verändern.</string>
+    <string name="mod_manager_move_up">%1$s nach oben verschieben</string>
+    <string name="mod_manager_move_down">%1$s nach unten verschieben</string>
+    <string name="touch_editor_title">Touch-Steuerung anordnen</string>
+    <string name="touch_editor_saved">Touch-Layout gespeichert.</string>
+    <string name="touch_editor_save_error">Touch-Layout konnte nicht gespeichert werden: %1$s</string>
 </resources>

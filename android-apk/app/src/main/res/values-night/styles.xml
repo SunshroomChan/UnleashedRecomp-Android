@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.NoTitleBar.Fullscreen">
-        <!-- Customize your theme here. -->
-    </style>
-    <style name="ModManagerTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="ModManagerTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:colorAccent">@color/colorPrimary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:colorAccent">#A6C8FF</item>
         <item name="android:navigationBarColor">@color/launcherBackground</item>
         <item name="android:statusBarColor">@color/launcherBackground</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
-    <style name="LauncherTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="LauncherTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans-serif</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:colorAccent">@color/colorPrimary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:colorAccent">#A6C8FF</item>
         <item name="android:navigationBarColor">@color/launcherBackground</item>
         <item name="android:statusBarColor">@color/launcherBackground</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
-    <style name="TouchEditorTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="TouchEditorTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowActionModeOverlay">true</item>

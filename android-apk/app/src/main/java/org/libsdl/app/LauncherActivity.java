@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -75,6 +75,7 @@ public final class LauncherActivity extends Activity {
     private CheckBox forceBc;
     private SharedPreferences prefs;
     private InstallState lastInstallState;
+    private MaterialUi ui;
 
     private static final class InstallState {
         final boolean ready;
@@ -88,8 +89,10 @@ public final class LauncherActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        ui = new MaterialUi(this);
         prefs = getPreferences(MODE_PRIVATE);
         setContentView(buildPage());
+        ui.applyWindow();
         loadSettings();
         maybeCheckForUpdates();
     }
@@ -103,16 +106,37 @@ public final class LauncherActivity extends Activity {
 
     private View buildPage() {
         ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        ui.styleRoot(scroll);
         LinearLayout page = column();
-        page.setPadding(dp(18), dp(18), dp(18), dp(28));
+        page.setPadding(dp(16), dp(18), dp(16), dp(32));
         scroll.addView(page);
 
-        TextView title = text(getString(R.string.launcher_title), 28, true);
-        page.addView(title);
+        LinearLayout hero = row();
+        hero.setPadding(dp(18), dp(18), dp(18), dp(18));
+        hero.setBackground(ui.rounded(ui.primaryContainer, 30));
+        LinearLayout.LayoutParams heroParams = matchWrap();
+        heroParams.bottomMargin = dp(16);
+        hero.setLayoutParams(heroParams);
+
+        ImageView appIcon = new ImageView(this);
+        appIcon.setImageResource(R.mipmap.ic_launcher);
+        appIcon.setContentDescription(getString(R.string.app_name));
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dp(76), dp(76));
+        iconParams.setMarginEnd(dp(16));
+        hero.addView(appIcon, iconParams);
+
+        LinearLayout heroText = column();
+        TextView title = text(getString(R.string.launcher_title), 29, true);
+        ui.title(title);
+        heroText.addView(title);
         TextView subtitle = text(getString(R.string.launcher_subtitle), 15, false);
-        subtitle.setTextColor(Color.DKGRAY);
-        subtitle.setPadding(0, dp(3), 0, dp(14));
-        page.addView(subtitle);
+        subtitle.setTextColor(ui.onPrimaryContainer);
+        subtitle.setPadding(0, dp(4), 0, 0);
+        heroText.addView(subtitle);
+        hero.addView(heroText, new LinearLayout.LayoutParams(0,
+            LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        page.addView(hero);
 
         LinearLayout files = card(R.string.launcher_game_files);
         installStatus = statusText();
@@ -186,10 +210,10 @@ public final class LauncherActivity extends Activity {
         debug.addView(diagnosticsStatus);
         debug.addView(button(R.string.launcher_open_logs, view -> openFiles("transfer")));
 
-        playButton = button(R.string.launcher_play, view -> launchGame(false));
-        playButton.setTextSize(18);
+        playButton = button(R.string.launcher_play, view -> launchGame());
+        ui.stylePrimaryButton(playButton, R.drawable.ic_action_play);
         LinearLayout.LayoutParams playParams = matchWrap();
-        playParams.topMargin = dp(8);
+        playParams.topMargin = dp(4);
         page.addView(playButton, playParams);
         return scroll;
     }
@@ -200,8 +224,8 @@ public final class LauncherActivity extends Activity {
         installStatus.setText(stagedInstall && !lastInstallState.ready
             ? getString(R.string.launcher_install_staged)
             : lastInstallState.message);
-        installStatus.setTextColor(lastInstallState.ready ? Color.rgb(25, 120, 55)
-            : stagedInstall ? Color.rgb(180, 110, 20) : Color.rgb(180, 45, 35));
+        installStatus.setTextColor(lastInstallState.ready ? ui.success
+            : stagedInstall ? ui.warning : ui.error);
         playButton.setEnabled(lastInstallState.ready || stagedInstall);
 
         File installedMarker = new File(getFilesDir(), "turnip/last_imported_driver.txt");
@@ -213,16 +237,16 @@ public final class LauncherActivity extends Activity {
         String imported = readFirstLine(installedMarker);
         if (recoveryMarker.isFile()) {
             driverStatus.setText(R.string.launcher_driver_recovery);
-            driverStatus.setTextColor(Color.rgb(180, 45, 35));
+            driverStatus.setTextColor(ui.error);
         } else if (pending > 0) {
             driverStatus.setText(getString(R.string.launcher_driver_pending, pending));
-            driverStatus.setTextColor(Color.DKGRAY);
+            driverStatus.setTextColor(ui.muted);
         } else if (!imported.isEmpty()) {
             driverStatus.setText(getString(R.string.launcher_driver_installed, imported));
-            driverStatus.setTextColor(Color.DKGRAY);
+            driverStatus.setTextColor(ui.muted);
         } else {
             driverStatus.setText(R.string.launcher_driver_builtin);
-            driverStatus.setTextColor(Color.DKGRAY);
+            driverStatus.setTextColor(ui.muted);
         }
 
         File log = new File(AppStorage.transferRoot(this), "log.txt");
@@ -311,7 +335,7 @@ public final class LauncherActivity extends Activity {
         }
     }
 
-    private void launchGame(boolean editControls) {
+    private void launchGame() {
         if (!saveSettings()) return;
         InstallState current = inspectInstallation();
         if (!current.ready && !hasStagedGamePackages()) {
@@ -319,26 +343,12 @@ public final class LauncherActivity extends Activity {
             refreshStatuses();
             return;
         }
-        if (editControls) {
-            try {
-                setMarker(new File(AppStorage.activeGameRoot(this), "touch_layout_edit.txt"), true, "1\n");
-            } catch (IOException exception) {
-                showError(getString(R.string.error_layout_editor, exception.getMessage()));
-                return;
-            }
-        }
         Intent game = new Intent(this, SDLActivity.class);
-        game.putExtra("org.libsdl.app.EDIT_TOUCH_LAYOUT", editControls);
         startActivity(game);
     }
 
     private void launchLayoutEditor() {
-        InstallState current = inspectInstallation();
-        if (!current.ready) {
-            showError(getString(R.string.error_layout_requires_game) + "\n\n" + current.message);
-            return;
-        }
-        launchGame(true);
+        startActivity(new Intent(this, TouchLayoutEditorActivity.class));
     }
 
     private void chooseDriver() {
@@ -853,13 +863,13 @@ public final class LauncherActivity extends Activity {
 
     private LinearLayout card(int titleId) {
         LinearLayout card = column();
-        card.setPadding(dp(14), dp(12), dp(14), dp(12));
-        card.setBackgroundColor(Color.rgb(245, 245, 245));
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        ui.styleCard(card);
         LinearLayout.LayoutParams params = matchWrap();
-        params.bottomMargin = dp(12);
+        params.bottomMargin = dp(14);
         card.setLayoutParams(params);
         TextView title = text(getString(titleId), 19, true);
-        title.setPadding(0, 0, 0, dp(7));
+        styleSectionTitle(title, titleId);
         card.addView(title);
         return card;
     }
@@ -871,10 +881,10 @@ public final class LauncherActivity extends Activity {
      */
     private LinearLayout collapsibleCard(LinearLayout page, int titleId, String stateKey, boolean defaultExpanded) {
         LinearLayout card = column();
-        card.setPadding(dp(14), dp(12), dp(14), dp(12));
-        card.setBackgroundColor(Color.rgb(245, 245, 245));
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        ui.styleCard(card);
         LinearLayout.LayoutParams params = matchWrap();
-        params.bottomMargin = dp(12);
+        params.bottomMargin = dp(14);
         card.setLayoutParams(params);
 
         final LinearLayout body = column();
@@ -883,7 +893,7 @@ public final class LauncherActivity extends Activity {
 
         final String label = getString(titleId);
         final TextView title = text(label, 19, true);
-        title.setPadding(0, 0, 0, dp(7));
+        styleSectionTitle(title, titleId);
         title.setText((expanded ? "▾  " : "▸  ") + label);
         title.setOnClickListener(view -> {
             boolean nowExpanded = body.getVisibility() != View.VISIBLE;
@@ -906,7 +916,11 @@ public final class LauncherActivity extends Activity {
             android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        parent.addView(spinner, matchWrap());
+        ui.styleSpinner(spinner);
+        LinearLayout.LayoutParams spinnerParams = matchWrap();
+        spinnerParams.topMargin = dp(5);
+        spinnerParams.bottomMargin = dp(10);
+        parent.addView(spinner, spinnerParams);
         return spinner;
     }
 
@@ -919,21 +933,27 @@ public final class LauncherActivity extends Activity {
 
     private TextView statusText() {
         TextView status = text("", 14, false);
-        status.setPadding(0, 0, 0, dp(7));
+        ui.body(status);
+        status.setPadding(0, 0, 0, dp(10));
         return status;
     }
 
     private CheckBox checkBox(int stringId) {
         CheckBox box = new CheckBox(this);
         box.setText(stringId);
+        ui.styleCheckBox(box);
         return box;
     }
 
     private Button button(int stringId, View.OnClickListener listener) {
         Button button = new Button(this);
         button.setText(stringId);
-        button.setAllCaps(false);
         button.setOnClickListener(listener);
+        ui.styleTonalButton(button, iconForButton(stringId));
+        LinearLayout.LayoutParams params = matchWrap();
+        params.topMargin = dp(4);
+        params.bottomMargin = dp(4);
+        button.setLayoutParams(params);
         return button;
     }
 
@@ -941,7 +961,7 @@ public final class LauncherActivity extends Activity {
         TextView view = new TextView(this);
         view.setText(value);
         view.setTextSize(size);
-        view.setTextColor(Color.rgb(25, 25, 25));
+        view.setTextColor(ui.text);
         if (bold) view.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         return view;
     }
@@ -965,7 +985,50 @@ public final class LauncherActivity extends Activity {
     }
 
     private LinearLayout.LayoutParams weighted() {
-        return new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        params.setMarginStart(dp(4));
+        params.setMarginEnd(dp(4));
+        return params;
+    }
+
+    private void styleSectionTitle(TextView title, int titleId) {
+        title.setTextColor(ui.text);
+        title.setPadding(0, 0, 0, dp(10));
+        int iconId = iconForSection(titleId);
+        if (iconId != 0) {
+            title.setCompoundDrawablesRelativeWithIntrinsicBounds(iconId, 0, 0, 0);
+            title.setCompoundDrawablePadding(dp(10));
+            title.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(ui.primary));
+        }
+    }
+
+    private int iconForSection(int titleId) {
+        if (titleId == R.string.launcher_game_files) return R.drawable.ic_action_folder;
+        if (titleId == R.string.launcher_updates) return R.drawable.ic_action_download;
+        if (titleId == R.string.launcher_graphics) return R.drawable.ic_action_tune;
+        if (titleId == R.string.launcher_controls) return R.drawable.ic_action_tune;
+        if (titleId == R.string.launcher_mods) return R.drawable.ic_action_extension;
+        if (titleId == R.string.launcher_debug) return R.drawable.ic_action_bug;
+        return 0;
+    }
+
+    private int iconForButton(int stringId) {
+        if (stringId == R.string.launcher_play) return R.drawable.ic_action_play;
+        if (stringId == R.string.launcher_open_files || stringId == R.string.launcher_open_saves
+                || stringId == R.string.launcher_driver_folder || stringId == R.string.launcher_open_logs) {
+            return R.drawable.ic_action_folder;
+        }
+        if (stringId == R.string.launcher_recheck || stringId == R.string.update_check) {
+            return R.drawable.ic_action_refresh;
+        }
+        if (stringId == R.string.launcher_install_game || stringId == R.string.launcher_install_mod
+                || stringId == R.string.launcher_import_driver) {
+            return R.drawable.ic_action_download;
+        }
+        if (stringId == R.string.launcher_manage_mods) return R.drawable.ic_action_extension;
+        if (stringId == R.string.launcher_edit_layout) return R.drawable.ic_action_tune;
+        return 0;
     }
 
     private int dp(int value) {

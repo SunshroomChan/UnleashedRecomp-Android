@@ -46,6 +46,11 @@ final class AppStorage {
         return new File(activeGameRoot(context), ".config/UnleashedRecomp/config.toml");
     }
 
+    /** Stable location for the touch layout; available before any game files exist. */
+    static File touchLayoutFile(Context context) {
+        return new File(context.getFilesDir(), "touch_layout.ini");
+    }
+
     /** Where native paths.cpp keeps save data: <game root>/.config/UnleashedRecomp/save. */
     static File saveDir(Context context) {
         return new File(activeGameRoot(context), ".config/UnleashedRecomp/save");

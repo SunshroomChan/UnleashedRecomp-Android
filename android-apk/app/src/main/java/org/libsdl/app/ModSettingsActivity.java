@@ -48,6 +48,7 @@ public final class ModSettingsActivity extends Activity {
     private final List<FieldBinding> fields = new ArrayList<>();
     private LinearLayout form;
     private TextView status;
+    private MaterialUi ui;
     private File modRoot;
     private File configFile;
 
@@ -75,14 +76,19 @@ public final class ModSettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        ui = new MaterialUi(this);
         modRoot = new File(getIntent().getStringExtra(EXTRA_ROOT));
         File schema = new File(getIntent().getStringExtra(EXTRA_SCHEMA));
 
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(dp(16), dp(16), dp(16), dp(12));
+        page.setPadding(dp(16), dp(18), dp(16), dp(16));
+        ui.styleRoot(page);
 
-        TextView title = text(getIntent().getStringExtra(EXTRA_TITLE), 23, true);
+        TextView title = text(getIntent().getStringExtra(EXTRA_TITLE), 28, true);
+        title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_action_settings, 0, 0, 0);
+        title.setCompoundDrawablePadding(dp(12));
+        title.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(ui.primary));
         page.addView(title, matchWrap());
 
         ScrollView scroll = new ScrollView(this);
@@ -98,8 +104,10 @@ public final class ModSettingsActivity extends Activity {
         Button save = new Button(this);
         save.setText(R.string.mod_settings_save);
         save.setOnClickListener(view -> save());
+        ui.stylePrimaryButton(save, R.drawable.ic_action_save);
         page.addView(save, matchWrap());
         setContentView(page);
+        ui.applyWindow();
 
         try {
             loadSchema(schema);
@@ -129,6 +137,7 @@ public final class ModSettingsActivity extends Activity {
             String display = group.optString("DisplayName", section);
             TextView header = text(display, 19, true);
             header.setPadding(0, dp(14), 0, dp(4));
+            header.setTextColor(ui.primary);
             form.addView(header, matchWrap());
 
             JSONArray elements = group.optJSONArray("Elements");
@@ -161,12 +170,14 @@ public final class ModSettingsActivity extends Activity {
         if (!description.isEmpty()) {
             TextView hint = text(description, 13, false);
             hint.setPadding(0, 0, 0, dp(3));
+            ui.body(hint);
             form.addView(hint, matchWrap());
         }
 
         if ("bool".equals(field.type)) {
             CheckBox box = new CheckBox(this);
             box.setChecked(Boolean.parseBoolean(value));
+            ui.styleCheckBox(box);
             field.input = box;
             form.addView(box, matchWrap());
         } else if (enums != null && enums.has(element.optString("Type", ""))) {
@@ -187,12 +198,18 @@ public final class ModSettingsActivity extends Activity {
                 android.R.layout.simple_spinner_item, field.choices);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(adapter);
+            ui.styleSpinner(spinner);
             if (!field.choices.isEmpty()) spinner.setSelection(selected);
             field.input = spinner;
             form.addView(spinner, matchWrap());
         } else {
             EditText edit = new EditText(this);
             edit.setText(value);
+            edit.setTextColor(ui.text);
+            edit.setHintTextColor(ui.muted);
+            edit.setPadding(dp(14), dp(10), dp(14), dp(10));
+            edit.setMinHeight(dp(52));
+            edit.setBackground(ui.rounded(ui.surfaceVariant, 16));
             if ("int".equals(field.type)) {
                 edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
             } else if ("float".equals(field.type)) {
@@ -423,6 +440,7 @@ public final class ModSettingsActivity extends Activity {
         TextView view = new TextView(this);
         view.setText(value != null ? value : "");
         view.setTextSize(size);
+        view.setTextColor(ui.text);
         if (bold) view.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         return view;
     }

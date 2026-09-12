@@ -65,8 +65,6 @@
     <string name="error_game_partial">Установка неполная или повреждена. Не найдены обязательные файлы:%1$s\n\nОжидаемая корневая папка:\n%2$s</string>
     <string name="error_game_nested">Похоже, файлы игры вложены в лишнюю папку (%1$s). Переместите папки game, update, patched и необязательную dlc непосредственно в:\n%2$s</string>
     <string name="error_settings_save">Не удалось сохранить настройки: %1$s</string>
-    <string name="error_layout_editor">Не удалось запустить редактор управления: %1$s</string>
-    <string name="error_layout_requires_game">Редактор использует рендер игры, поэтому сначала нужна корректная установка файлов игры.</string>
     <string name="error_driver_extension">Выберите обычную библиотеку Vulkan .so или пакет AdrenoTools/ExynosTools в формате .zip.</string>
     <string name="error_driver_copy">Не удалось импортировать драйвер: %1$s</string>
     <string name="error_open_files">Не удалось открыть папку приложения в системных «Файлах».</string>
@@ -105,7 +103,7 @@
     <string name="documents_save_title">Сохранения Unleashed Recomp</string>
     <string name="documents_save_summary">Данные сохранений (SYS-DATA) и сохранения модов</string>
     <string name="launcher_open_saves">Открыть папку сохранений</string>
-    <string name="launcher_controls_moved">Экранные кнопки, камера и стик перенесены во внутриигровое меню опций (раздел «Управление»). Настраивайте их прямо в игре.</string>
+    <string name="launcher_controls_moved">Настраивайте сенсорное управление без установки файлов игры. Положение, размер и прозрачность каждого элемента изменяются отдельно.</string>
     <string name="launcher_force_bc">Форсировать нативные BC-текстуры (отключить ETC2-транскод; только для GPU с поддержкой BC)</string>
     <string name="mod_manager_codes">Коды</string>
     <string name="mod_manager_codes_hint">Встроенные патчи, применяемые при запуске. Сохраняются вместе со списком модов; для применения перезапустите игру.</string>
@@ -127,4 +125,9 @@
     <string name="update_downloading">Загрузка обновления…</string>
     <string name="update_download_progress">Скачано %1$s из %2$s</string>
     <string name="update_ready_to_install">Обновление скачано. Продолжите в системном установщике Android.</string>
+    <string name="mod_manager_move_up">Переместить %1$s вверх</string>
+    <string name="mod_manager_move_down">Переместить %1$s вниз</string>
+    <string name="touch_editor_title">Схема сенсорного управления</string>
+    <string name="touch_editor_saved">Схема сенсорного управления сохранена.</string>
+    <string name="touch_editor_save_error">Не удалось сохранить схему сенсорного управления: %1$s</string>
 </resources>

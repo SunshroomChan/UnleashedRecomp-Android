@@ -74,6 +74,7 @@ public final class ModManagerActivity extends Activity {
     private final List<ModEntry> mods = new ArrayList<>();
     private LinearLayout modList;
     private TextView status;
+    private MaterialUi ui;
     private int scannedFiles;
     private final LinkedHashSet<String> enabledCodes = new LinkedHashSet<>();
 
@@ -96,20 +97,27 @@ public final class ModManagerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ui = new MaterialUi(this);
 
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(dp(16), dp(16), dp(16), dp(12));
+        page.setPadding(dp(16), dp(18), dp(16), dp(16));
+        ui.styleRoot(page);
 
         TextView title = new TextView(this);
         title.setText(R.string.mod_manager_title);
-        title.setTextSize(24);
+        title.setTextSize(29);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setTextColor(ui.text);
+        title.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_action_extension, 0, 0, 0);
+        title.setCompoundDrawablePadding(dp(12));
+        title.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(ui.primary));
         page.addView(title, matchWrap());
 
         TextView hint = new TextView(this);
         hint.setText(R.string.mod_manager_hint);
-        hint.setPadding(0, dp(8), 0, dp(10));
+        hint.setPadding(0, dp(6), 0, dp(14));
+        ui.body(hint);
         page.addView(hint, matchWrap());
 
         LinearLayout actions = new LinearLayout(this);
@@ -118,11 +126,13 @@ public final class ModManagerActivity extends Activity {
         Button openFiles = new Button(this);
         openFiles.setText(R.string.mod_manager_open_files);
         openFiles.setOnClickListener(view -> openGameFiles());
+        ui.styleOutlinedButton(openFiles, R.drawable.ic_action_folder);
         actions.addView(openFiles, weightedWrap());
 
         Button refresh = new Button(this);
         refresh.setText(R.string.mod_manager_refresh);
         refresh.setOnClickListener(view -> reload());
+        ui.styleTonalButton(refresh, R.drawable.ic_action_refresh);
         actions.addView(refresh, weightedWrap());
         page.addView(actions, matchWrap());
 
@@ -135,14 +145,17 @@ public final class ModManagerActivity extends Activity {
 
         status = new TextView(this);
         status.setPadding(0, dp(8), 0, dp(4));
+        ui.body(status);
         page.addView(status, matchWrap());
 
         Button save = new Button(this);
         save.setText(R.string.mod_manager_save);
         save.setOnClickListener(view -> saveSelection());
+        ui.stylePrimaryButton(save, R.drawable.ic_action_save);
         page.addView(save, matchWrap());
 
         setContentView(page);
+        ui.applyWindow();
         reload();
     }
 
@@ -333,6 +346,7 @@ public final class ModManagerActivity extends Activity {
             empty.setText(R.string.mod_manager_empty);
             empty.setPadding(0, dp(24), 0, dp(24));
             empty.setGravity(Gravity.CENTER);
+            ui.body(empty);
             modList.addView(empty, matchWrap());
             addCodesSection();
             return;
@@ -343,11 +357,14 @@ public final class ModManagerActivity extends Activity {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(12), dp(8), dp(8), dp(8));
+            ui.styleCard(row);
 
             CheckBox enabled = new CheckBox(this);
             enabled.setText(entry.title + "\n" + entry.iniFile.getParent());
             enabled.setChecked(entry.enabled);
             enabled.setOnCheckedChangeListener((button, checked) -> entry.enabled = checked);
+            ui.styleCheckBox(enabled);
             row.addView(enabled, new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
 
@@ -357,22 +374,32 @@ public final class ModManagerActivity extends Activity {
                 settings.setText("⚙");
                 settings.setContentDescription(getString(R.string.mod_settings_open, entry.title));
                 settings.setOnClickListener(view -> openModSettings(entry));
+                ui.styleIconButton(settings, R.drawable.ic_action_settings);
+                settings.setText("");
                 row.addView(settings, squareButton());
             }
 
             Button up = new Button(this);
             up.setText("↑");
+            up.setContentDescription(getString(R.string.mod_manager_move_up, entry.title));
             up.setEnabled(index > 0);
             up.setOnClickListener(view -> move(rowIndex, -1));
+            ui.styleIconButton(up, R.drawable.ic_action_arrow_up);
+            up.setText("");
             row.addView(up, squareButton());
 
             Button down = new Button(this);
             down.setText("↓");
+            down.setContentDescription(getString(R.string.mod_manager_move_down, entry.title));
             down.setEnabled(index + 1 < mods.size());
             down.setOnClickListener(view -> move(rowIndex, 1));
+            ui.styleIconButton(down, R.drawable.ic_action_arrow_down);
+            down.setText("");
             row.addView(down, squareButton());
 
-            modList.addView(row, matchWrap());
+            LinearLayout.LayoutParams rowParams = matchWrap();
+            rowParams.bottomMargin = dp(10);
+            modList.addView(row, rowParams);
         }
 
         addCodesSection();
@@ -411,12 +438,15 @@ public final class ModManagerActivity extends Activity {
         TextView header = new TextView(this);
         header.setText(R.string.mod_manager_codes);
         header.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        header.setTextColor(ui.text);
+        header.setTextSize(19);
         header.setPadding(0, dp(18), 0, dp(2));
         modList.addView(header, matchWrap());
 
         TextView hint = new TextView(this);
         hint.setText(R.string.mod_manager_codes_hint);
         hint.setPadding(0, 0, 0, dp(6));
+        ui.body(hint);
         modList.addView(hint, matchWrap());
 
         Set<String> known = new HashSet<>();
@@ -426,6 +456,7 @@ public final class ModManagerActivity extends Activity {
             CheckBox box = new CheckBox(this);
             box.setText(def[1]);
             box.setChecked(enabledCodes.contains(name));
+            ui.styleCheckBox(box);
             box.setOnCheckedChangeListener((button, checked) -> {
                 if (checked) {
                     enabledCodes.add(name);
@@ -444,6 +475,7 @@ public final class ModManagerActivity extends Activity {
             CheckBox box = new CheckBox(this);
             box.setText(name);
             box.setChecked(true);
+            ui.styleCheckBox(box);
             box.setOnCheckedChangeListener((button, checked) -> {
                 if (checked) {
                     enabledCodes.add(extra);
@@ -689,12 +721,17 @@ public final class ModManagerActivity extends Activity {
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     }
 
-    private static LinearLayout.LayoutParams weightedWrap() {
-        return new LinearLayout.LayoutParams(
+    private LinearLayout.LayoutParams weightedWrap() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        params.setMarginStart(dp(4));
+        params.setMarginEnd(dp(4));
+        return params;
     }
 
     private LinearLayout.LayoutParams squareButton() {
-        return new LinearLayout.LayoutParams(dp(52), LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(52), dp(48));
+        params.setMarginStart(dp(4));
+        return params;
     }
 }

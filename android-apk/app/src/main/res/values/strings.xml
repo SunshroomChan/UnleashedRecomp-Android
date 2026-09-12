@@ -14,6 +14,8 @@
     <string name="mod_manager_found">Found %1$d compatible mods.</string>
     <string name="mod_manager_saved">Saved %1$d enabled mods in priority order.</string>
     <string name="mod_manager_restart">Mod changes will apply after the game is restarted.</string>
+    <string name="mod_manager_move_up">Move %1$s up</string>
+    <string name="mod_manager_move_down">Move %1$s down</string>
     <string name="mod_manager_error_directory">Cannot create configuration directory: %1$s</string>
     <string name="mod_manager_error_save">Cannot save the mod database: %1$s</string>
     <string name="mod_manager_error_files">Android Files could not be opened.</string>
@@ -38,6 +40,9 @@
     <string name="launcher_touch_policy">On-screen controls</string>
     <string name="launcher_touch_camera">Camera control</string>
     <string name="launcher_edit_layout">Arrange touch controls</string>
+    <string name="touch_editor_title">Touch control layout</string>
+    <string name="touch_editor_saved">Touch control layout saved.</string>
+    <string name="touch_editor_save_error">Could not save the touch layout: %1$s</string>
     <string name="launcher_mods">Mods</string>
     <string name="launcher_mods_summary">Enable compatible HMM/UMM mods and set their priority.</string>
     <string name="launcher_manage_mods">Manage mods</string>
@@ -64,8 +69,6 @@
     <string name="error_game_partial">The installation is incomplete or damaged. Missing required files:%1$s\n\nExpected root:\n%2$s</string>
     <string name="error_game_nested">Game files appear to be nested in the wrong folder (%1$s). Move game, update, patched and optional dlc folders directly into:\n%2$s</string>
     <string name="error_settings_save">Could not save settings: %1$s</string>
-    <string name="error_layout_editor">Could not start the layout editor: %1$s</string>
-    <string name="error_layout_requires_game">The layout editor uses the game renderer, so a valid game installation is required.</string>
     <string name="error_driver_extension">Choose a plain Vulkan .so file or an AdrenoTools/ExynosTools .zip package.</string>
     <string name="error_driver_copy">Could not import the driver: %1$s</string>
     <string name="error_open_files">Android Files could not open the application folder.</string>
@@ -104,7 +107,7 @@
     <string name="documents_save_title">Unleashed Recomp saves</string>
     <string name="documents_save_summary">Save data (SYS-DATA) and per-mod saves</string>
     <string name="launcher_open_saves">Open saves folder</string>
-    <string name="launcher_controls_moved">On-screen controls, camera and stick moved to the in-game options menu (Input). Adjust them there while playing.</string>
+    <string name="launcher_controls_moved">Arrange touch controls without installing game files. Move, resize and adjust the opacity of each control independently.</string>
     <string name="launcher_force_bc">Force native BC textures (disable ETC2 transcode; only for GPUs that support BC)</string>
     <string name="mod_manager_codes">Codes</string>
     <string name="mod_manager_codes_hint">Built-in patches applied at boot. Saved with the mod list; restart the game to apply.</string>

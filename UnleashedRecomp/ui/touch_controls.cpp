@@ -27,9 +27,9 @@
 // On-screen touch controls with a drag-to-arrange layout editor.
 //
 // Every control (stick, A/B/X/Y, LB/RB, LT/RT, Start/Back) has its own editable
-// position. The Android launcher requests the editor for one launch; each control
-// can be dragged, the whole set resized, or reset to defaults. The layout is saved
-// to <data>/touch_layout.ini and reloaded on the next launch.
+// position, size and opacity. Android also exposes a standalone editor which can
+// save the layout before any game files are installed. The layout is stored in
+// the app-private files directory and reloaded on the next launch.
 //
 // Positions are fractions of the viewport; X of the viewport width, Y of the
 // viewport height. Sizes are fractions of the viewport height so the layout keeps
@@ -51,7 +51,7 @@ namespace
         TC_COUNT
     };
 
-    // Base sizes (fractions of viewport height), multiplied by the global scale.
+    // Base sizes (fractions of viewport height), multiplied by each control's scale.
     constexpr float STICK_BASE_R  = 0.150f;
     constexpr float STICK_THUMB_R = 0.070f;
     constexpr float STICK_ZONE_R  = 0.210f;
@@ -68,14 +68,17 @@ namespace
     constexpr float MENU_HW       = 0.032f;
     constexpr float MENU_HH       = 0.032f;
 
-    constexpr float SCALE_MIN = 0.60f;
-    constexpr float SCALE_MAX = 1.60f;
+    constexpr float SCALE_MIN = 0.55f;
+    constexpr float SCALE_MAX = 1.80f;
+    constexpr float OPACITY_MIN = 0.25f;
+    constexpr float OPACITY_MAX = 1.00f;
 
     struct Layout
     {
         float x[TC_COUNT];
         float y[TC_COUNT];
-        float scale;
+        float scale[TC_COUNT];
+        float opacity[TC_COUNT];
     };
 
     // Default layout. X-offsets that were expressed in height units in the old
@@ -89,8 +92,9 @@ namespace
     {
         //  stick    A       B       X       Y      LB      RB      LT      RT     Start   Back   rstick
         {  0.135f, 0.865f, 0.927f, 0.803f, 0.865f, 0.075f, 0.925f, 0.075f, 0.925f, 0.555f, 0.445f, 0.680f },
-        {  0.760f, 0.885f, 0.760f, 0.760f, 0.635f, 0.090f, 0.090f, 0.185f, 0.185f, 0.070f, 0.070f, 0.820f },
-        1.0f
+        {  0.760f, 0.885f, 0.760f, 0.760f, 0.635f, 0.090f, 0.090f, 0.185f, 0.185f, 0.235f, 0.235f, 0.820f },
+        {  1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   1.0f   },
+        {  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f,  0.72f  }
     };
 
     Layout g_layout = kDefault;
@@ -154,6 +158,7 @@ namespace
 
     bool g_edit = false;
     int  g_dragElem = -1;                       // control being dragged (-1 = none)
+    int  g_selectedElem = TC_A;                 // control changed by size/opacity actions
     SDL_FingerID g_dragFinger = (SDL_FingerID)-1;
     float g_grabX = 0.0f, g_grabY = 0.0f;       // element-centre minus finger, in fractions
     std::vector<SDL_FingerID> g_prevIds;        // finger ids present last frame (for fresh-down detection)
@@ -166,7 +171,7 @@ namespace
     ElemRect ElemRectOf(int i, float vw, float vh)
     {
         ImVec2 c(g_layout.x[i] * vw, g_layout.y[i] * vh);
-        const float s = g_layout.scale;
+        const float s = g_layout.scale[i];
         if (i == TC_STICK)                { const float r = STICK_BASE_R * vh * s; return { c, r, r, true }; }
         if (i == TC_RSTICK)               { const float r = RSTICK_BASE_R * vh * s; return { c, r, r, true }; }
         if (i >= TC_A && i <= TC_Y)       { const float r = FACE_BTN_R  * vh * s; return { c, r, r, true }; }
@@ -177,6 +182,16 @@ namespace
     // ---- Persistence -------------------------------------------------------
 
     std::filesystem::path LayoutFilePath()
+    {
+#ifdef __ANDROID__
+        const std::filesystem::path& root = os::android::GetInternalFilesDir();
+        if (!root.empty())
+            return root / "touch_layout.ini";
+#endif
+        return {};
+    }
+
+    std::filesystem::path LegacyLayoutFilePath()
     {
 #ifdef __ANDROID__
         const std::filesystem::path& root = os::android::GetDataRoot();
@@ -196,10 +211,10 @@ namespace
         if (!f)
             return;
 
-        f << "version=1\n";
-        f << "scale=" << g_layout.scale << "\n";
+        f << "version=2\n";
         for (int i = 0; i < TC_COUNT; ++i)
-            f << kKey[i] << "=" << g_layout.x[i] << "," << g_layout.y[i] << "\n";
+            f << kKey[i] << "=" << g_layout.x[i] << "," << g_layout.y[i] << ","
+              << g_layout.scale[i] << "," << g_layout.opacity[i] << "\n";
     }
 
     void LoadLayout()
@@ -207,13 +222,20 @@ namespace
         g_layout = kDefault;
         g_layoutLoaded = true;
 
-        const std::filesystem::path path = LayoutFilePath();
+        std::filesystem::path path = LayoutFilePath();
         if (path.empty())
             return;
 
         std::ifstream f(path, std::ios::binary);
+        bool loadedLegacy = false;
         if (!f)
-            return;
+        {
+            path = LegacyLayoutFilePath();
+            f.open(path, std::ios::binary);
+            if (!f)
+                return;
+            loadedLegacy = true;
+        }
 
         std::string line;
         while (std::getline(f, line))
@@ -230,7 +252,9 @@ namespace
 
             if (key == "scale")
             {
-                g_layout.scale = std::clamp((float)atof(val.c_str()), SCALE_MIN, SCALE_MAX);
+                const float legacyScale = std::clamp((float)atof(val.c_str()), SCALE_MIN, SCALE_MAX);
+                for (float& scale : g_layout.scale)
+                    scale = legacyScale;
                 continue;
             }
 
@@ -238,18 +262,34 @@ namespace
             {
                 if (key == kKey[i])
                 {
-                    const size_t comma = val.find(',');
-                    if (comma != std::string::npos)
+                    std::vector<float> fields;
+                    size_t begin = 0;
+                    while (begin <= val.size())
                     {
-                        const float x = (float)atof(val.substr(0, comma).c_str());
-                        const float y = (float)atof(val.substr(comma + 1).c_str());
-                        g_layout.x[i] = std::clamp(x, 0.0f, 1.0f);
-                        g_layout.y[i] = std::clamp(y, 0.0f, 1.0f);
+                        const size_t comma = val.find(',', begin);
+                        fields.push_back((float)atof(val.substr(begin, comma - begin).c_str()));
+                        if (comma == std::string::npos)
+                            break;
+                        begin = comma + 1;
                     }
+                    if (fields.size() >= 2)
+                    {
+                        g_layout.x[i] = std::clamp(fields[0], 0.0f, 1.0f);
+                        g_layout.y[i] = std::clamp(fields[1], 0.0f, 1.0f);
+                    }
+                    if (fields.size() >= 3)
+                        g_layout.scale[i] = std::clamp(fields[2], SCALE_MIN, SCALE_MAX);
+                    if (fields.size() >= 4)
+                        g_layout.opacity[i] = std::clamp(fields[3], OPACITY_MIN, OPACITY_MAX);
                     break;
                 }
             }
         }
+
+        // Import an old game-root layout once so future game-directory changes do
+        // not lose the user's controls.
+        if (loadedLegacy)
+            SaveLayout();
     }
 
     // ---- Drawing helpers ---------------------------------------------------
@@ -288,27 +328,52 @@ namespace
             GET_UV_COORDS(std::get<0>(ic)), IM_COL32(255, 255, 255, alpha));
     }
 
-    // Round face button (A/B/X/Y): dark backing disc + coloured glyph on top.
-    void DrawFaceButton(ImDrawList* dl, const std::vector<ImVec2>& pts, ImVec2 c, float r,
-        EButtonIcon icon, uint16_t bit, XAMINPUT_GAMEPAD& st)
+    ImU32 FaceColour(int index, int alpha)
     {
+        switch (index)
+        {
+            case TC_A: return IM_COL32(55, 184, 107, alpha);
+            case TC_B: return IM_COL32(229, 83, 83, alpha);
+            case TC_X: return IM_COL32(57, 135, 232, alpha);
+            default:   return IM_COL32(241, 185, 67, alpha);
+        }
+    }
+
+    // Material-inspired face button: translucent colour, bright rim and soft shadow.
+    void DrawFaceButton(ImDrawList* dl, const std::vector<ImVec2>& pts, int index,
+        const ElemRect& rect, EButtonIcon icon, uint16_t bit, XAMINPUT_GAMEPAD& st)
+    {
+        const ImVec2 c = rect.c;
+        const float r = rect.hw;
+        const int alpha = int(g_layout.opacity[index] * 255.0f + 0.5f);
         const bool pressed = AnyFingerInCircle(pts, c, r * 1.3f);
         if (pressed)
             st.wButtons |= bit;
 
-        dl->AddCircleFilled(c, r * 1.25f, IM_COL32(0, 0, 0, pressed ? 120 : 70), 32);
-        DrawGlyph(dl, c, r, r, icon, pressed ? 255 : 210);
+        dl->AddCircleFilled({ c.x + r * 0.05f, c.y + r * 0.09f }, r * 1.10f,
+            IM_COL32(0, 0, 0, std::min(150, alpha / 2)), 32);
+        dl->AddCircleFilled(c, r, FaceColour(index, std::min(255, pressed ? alpha : int(alpha * 0.58f))), 32);
+        dl->AddCircle(c, r, FaceColour(index, alpha), 32, pressed ? 4.0f : 2.5f);
+        DrawGlyph(dl, c, r * 0.78f, r * 0.78f, icon, std::min(255, pressed ? alpha + 50 : alpha));
     }
 
-    // Wide button (shoulders/triggers/start/back): rounded backing + glyph.
-    bool DrawWideButton(ImDrawList* dl, const std::vector<ImVec2>& pts, ImVec2 c,
-        float halfW, float halfH, float glyphHalfW, float glyphHalfH, EButtonIcon icon)
+    // Wide button (shoulders/triggers/start/back): blue glass surface + glyph.
+    bool DrawWideButton(ImDrawList* dl, const std::vector<ImVec2>& pts, int index,
+        const ElemRect& rect, float glyphHalfW, float glyphHalfH, EButtonIcon icon)
     {
+        const ImVec2 c = rect.c;
+        const float halfW = rect.hw;
+        const float halfH = rect.hh;
+        const int alpha = int(g_layout.opacity[index] * 255.0f + 0.5f);
         const bool pressed = AnyFingerInRect(pts, { c.x - halfW, c.y - halfH }, { c.x + halfW, c.y + halfH });
 
+        dl->AddRectFilled({ c.x - halfW + 2.0f, c.y - halfH + 4.0f },
+            { c.x + halfW + 2.0f, c.y + halfH + 4.0f }, IM_COL32(0, 0, 0, std::min(140, alpha / 2)), halfH * 0.72f);
         dl->AddRectFilled({ c.x - halfW, c.y - halfH }, { c.x + halfW, c.y + halfH },
-            IM_COL32(0, 0, 0, pressed ? 120 : 70), halfH * 0.5f);
-        DrawGlyph(dl, c, glyphHalfW, glyphHalfH, icon, pressed ? 255 : 210);
+            IM_COL32(31, 91, 190, std::min(255, pressed ? alpha : int(alpha * 0.60f))), halfH * 0.72f);
+        dl->AddRect({ c.x - halfW, c.y - halfH }, { c.x + halfW, c.y + halfH },
+            IM_COL32(153, 194, 255, alpha), halfH * 0.72f, 0, pressed ? 3.5f : 2.0f);
+        DrawGlyph(dl, c, glyphHalfW, glyphHalfH, icon, std::min(255, pressed ? alpha + 50 : alpha));
 
         return pressed;
     }
@@ -318,7 +383,7 @@ namespace
     // an 8-way split (diagonals press two directions), matching how the game's
     // menus read the physical D-pad.
     void DrawDpad(ImDrawList* dl, const std::vector<FingerPt>& fps, ImVec2 c,
-        float baseR, float zoneR, XAMINPUT_GAMEPAD& st)
+        float baseR, float zoneR, float opacity, XAMINPUT_GAMEPAD& st)
     {
         uint16_t bits = 0;
         for (const auto& fp : fps)
@@ -337,8 +402,9 @@ namespace
         }
         st.wButtons |= bits;
 
-        dl->AddCircleFilled(c, baseR, IM_COL32(0, 0, 0, bits ? 90 : 55), 48);
-        dl->AddCircle(c, baseR, IM_COL32(255, 255, 255, 130), 48, 3.0f);
+        const int alpha = int(opacity * 255.0f + 0.5f);
+        dl->AddCircleFilled(c, baseR, IM_COL32(31, 91, 190, std::min(255, bits ? alpha : int(alpha * 0.38f))), 48);
+        dl->AddCircle(c, baseR, IM_COL32(169, 203, 255, alpha), 48, 3.0f);
 
         struct { float ox, oy; uint16_t bit; } dirs[4] =
         {
@@ -355,39 +421,44 @@ namespace
             const ImVec2 b2  { c.x + d.ox * baseR * 0.38f + d.oy * baseR * 0.26f,
                                c.y + d.oy * baseR * 0.38f + d.ox * baseR * 0.26f };
             const bool on = (st.wButtons & d.bit) != 0;
-            dl->AddTriangleFilled(tip, b1, b2, IM_COL32(255, 255, 255, on ? 230 : 120));
+            dl->AddTriangleFilled(tip, b1, b2,
+                IM_COL32(255, 255, 255, std::min(255, on ? alpha + 50 : int(alpha * 0.65f))));
         }
     }
 
     // Draw a control's static visual (no press detection) - used by the editor.
     void DrawElemVisual(ImDrawList* dl, int i, const ElemRect& r)
     {
+        const int alpha = int(g_layout.opacity[i] * 255.0f + 0.5f);
         if (i == TC_STICK || i == TC_RSTICK)
         {
-            dl->AddCircleFilled(r.c, r.hw, IM_COL32(0, 0, 0, 55), 48);
-            dl->AddCircle(r.c, r.hw, IM_COL32(255, 255, 255, 130), 48, 3.0f);
+            dl->AddCircleFilled(r.c, r.hw, IM_COL32(31, 91, 190, int(alpha * 0.38f)), 48);
+            dl->AddCircle(r.c, r.hw, IM_COL32(169, 203, 255, alpha), 48, 3.0f);
             const float thumb = r.hw * (i == TC_RSTICK ? RSTICK_THUMB_R / RSTICK_BASE_R
                                                        : STICK_THUMB_R / STICK_BASE_R);
-            dl->AddCircleFilled(r.c, thumb, IM_COL32(255, 255, 255, 110), 32);
+            dl->AddCircleFilled(r.c, thumb, IM_COL32(218, 229, 255, int(alpha * 0.82f)), 32);
             return;
         }
 
         if (i >= TC_A && i <= TC_Y)
         {
-            dl->AddCircleFilled(r.c, r.hw * 1.25f, IM_COL32(0, 0, 0, 70), 32);
-            DrawGlyph(dl, r.c, r.hw, r.hw, kIcon[i], 210);
+            dl->AddCircleFilled(r.c, r.hw, FaceColour(i, int(alpha * 0.58f)), 32);
+            dl->AddCircle(r.c, r.hw, FaceColour(i, alpha), 32, 2.5f);
+            DrawGlyph(dl, r.c, r.hw * 0.78f, r.hw * 0.78f, kIcon[i], alpha);
             return;
         }
 
         dl->AddRectFilled({ r.c.x - r.hw, r.c.y - r.hh }, { r.c.x + r.hw, r.c.y + r.hh },
-            IM_COL32(0, 0, 0, 70), r.hh * 0.5f);
+            IM_COL32(31, 91, 190, int(alpha * 0.60f)), r.hh * 0.72f);
+        dl->AddRect({ r.c.x - r.hw, r.c.y - r.hh }, { r.c.x + r.hw, r.c.y + r.hh },
+            IM_COL32(153, 194, 255, alpha), r.hh * 0.72f, 0, 2.0f);
 
         float gw, gh;
         if (i == TC_LB || i == TC_RB)      { gw = r.hw * 0.75f; gh = r.hh * 0.85f; }
         else if (i == TC_LT || i == TC_RT) { gw = r.hh * 0.95f; gh = r.hh * 0.95f; }
         else                               { gw = r.hw;         gh = r.hh; } // Start / Back
 
-        DrawGlyph(dl, r.c, gw, gh, kIcon[i], 210);
+        DrawGlyph(dl, r.c, gw, gh, kIcon[i], alpha);
     }
 }
 
@@ -615,8 +686,9 @@ void TouchControls::Draw()
 
             // One wide SKIP button tucked into the top-right corner, away from the
             // achievement overlay (top centre) and any subtitles (bottom).
-            const float skipHW = MENU_HW * vh * g_layout.scale * 2.2f;
-            const float skipHH = MENU_HH * vh * g_layout.scale;
+            const float skipHW = MENU_HW * vh * g_layout.scale[TC_START] * 2.2f;
+            const float skipHH = MENU_HH * vh * g_layout.scale[TC_START];
+            const int skipAlpha = int(g_layout.opacity[TC_START] * 255.0f + 0.5f);
             const ImVec2 skipC = { vw - skipHW - vh * 0.03f, vh * 0.03f + skipHH };
 
             std::vector<ImVec2> pts;
@@ -630,13 +702,13 @@ void TouchControls::Draw()
                 st.wButtons |= XAMINPUT_GAMEPAD_START;
 
             dl->AddRectFilled({ skipC.x - skipHW, skipC.y - skipHH }, { skipC.x + skipHW, skipC.y + skipHH },
-                IM_COL32(0, 0, 0, pressed ? 150 : 90), skipHH * 0.5f);
+                IM_COL32(31, 91, 190, std::min(255, pressed ? skipAlpha : int(skipAlpha * 0.60f))), skipHH * 0.72f);
             dl->AddRect({ skipC.x - skipHW, skipC.y - skipHH }, { skipC.x + skipHW, skipC.y + skipHH },
-                IM_COL32(255, 255, 255, 150), skipHH * 0.5f, 0, 2.0f);
+                IM_COL32(153, 194, 255, skipAlpha), skipHH * 0.72f, 0, 2.0f);
             const char* skipLabel = "SKIP >>";
             const ImVec2 ts = font->CalcTextSizeA(fontPx, FLT_MAX, 0.0f, skipLabel);
             dl->AddText(font, fontPx, { skipC.x - ts.x * 0.5f, skipC.y - ts.y * 0.5f },
-                IM_COL32(255, 255, 255, pressed ? 255 : 220), skipLabel);
+                IM_COL32(255, 255, 255, std::min(255, pressed ? skipAlpha + 50 : skipAlpha)), skipLabel);
 
             g_state = st;
             g_prevIds = std::move(curIds);
@@ -645,9 +717,10 @@ void TouchControls::Draw()
 
         // ---- Left analog stick ----
         const ImVec2 stickC(g_layout.x[TC_STICK] * vw, g_layout.y[TC_STICK] * vh);
-        const float baseR  = STICK_BASE_R  * vh * g_layout.scale;
-        const float thumbR = STICK_THUMB_R * vh * g_layout.scale;
-        const float zoneR  = STICK_ZONE_R  * vh * g_layout.scale;
+        const float baseR  = STICK_BASE_R  * vh * g_layout.scale[TC_STICK];
+        const float thumbR = STICK_THUMB_R * vh * g_layout.scale[TC_STICK];
+        const float zoneR  = STICK_ZONE_R  * vh * g_layout.scale[TC_STICK];
+        const int stickAlpha = int(g_layout.opacity[TC_STICK] * 255.0f + 0.5f);
 
         const ImVec2* stickPos = nullptr;
         if (g_stickFingerId != (SDL_FingerID)-1)
@@ -702,9 +775,10 @@ void TouchControls::Draw()
         if (cameraMode == EAndroidTouchCameraMode::RightStick)
         {
             const ImVec2 rstickC(g_layout.x[TC_RSTICK] * vw, g_layout.y[TC_RSTICK] * vh);
-            const float rBaseR  = RSTICK_BASE_R  * vh * g_layout.scale;
-            const float rThumbR = RSTICK_THUMB_R * vh * g_layout.scale;
-            const float rZoneR  = RSTICK_ZONE_R  * vh * g_layout.scale;
+            const float rBaseR  = RSTICK_BASE_R  * vh * g_layout.scale[TC_RSTICK];
+            const float rThumbR = RSTICK_THUMB_R * vh * g_layout.scale[TC_RSTICK];
+            const float rZoneR  = RSTICK_ZONE_R  * vh * g_layout.scale[TC_RSTICK];
+            const int rstickAlpha = int(g_layout.opacity[TC_RSTICK] * 255.0f + 0.5f);
 
             const ImVec2* rstickPos = nullptr;
             if (g_rstickFingerId != (SDL_FingerID)-1)
@@ -754,9 +828,11 @@ void TouchControls::Draw()
                 rstickActive = true;
             }
 
-            dl->AddCircleFilled(rstickC, rBaseR, IM_COL32(0, 0, 0, rstickActive ? 90 : 55), 48);
-            dl->AddCircle(rstickC, rBaseR, IM_COL32(255, 255, 255, 130), 48, 3.0f);
-            dl->AddCircleFilled(rThumbPos, rThumbR, IM_COL32(255, 255, 255, rstickActive ? 170 : 110), 32);
+            dl->AddCircleFilled(rstickC, rBaseR,
+                IM_COL32(31, 91, 190, std::min(255, rstickActive ? rstickAlpha : int(rstickAlpha * 0.38f))), 48);
+            dl->AddCircle(rstickC, rBaseR, IM_COL32(169, 203, 255, rstickAlpha), 48, 3.0f);
+            dl->AddCircleFilled(rThumbPos, rThumbR,
+                IM_COL32(218, 229, 255, std::min(255, rstickActive ? rstickAlpha : int(rstickAlpha * 0.82f))), 32);
         }
         else
         {
@@ -832,42 +908,45 @@ void TouchControls::Draw()
 
         if (useDpad)
         {
-            DrawDpad(dl, fps, stickC, baseR, zoneR, st);
+            DrawDpad(dl, fps, stickC, baseR, zoneR, g_layout.opacity[TC_STICK], st);
         }
         else
         {
-            dl->AddCircleFilled(stickC, baseR, IM_COL32(0, 0, 0, stickActive ? 90 : 55), 48);
-            dl->AddCircle(stickC, baseR, IM_COL32(255, 255, 255, 130), 48, 3.0f);
-            dl->AddCircleFilled(thumbPos, thumbR, IM_COL32(255, 255, 255, stickActive ? 170 : 110), 32);
+            dl->AddCircleFilled(stickC, baseR,
+                IM_COL32(31, 91, 190, std::min(255, stickActive ? stickAlpha : int(stickAlpha * 0.38f))), 48);
+            dl->AddCircle(stickC, baseR, IM_COL32(169, 203, 255, stickAlpha), 48, 3.0f);
+            dl->AddCircleFilled(thumbPos, thumbR,
+                IM_COL32(218, 229, 255, std::min(255, stickActive ? stickAlpha : int(stickAlpha * 0.82f))), 32);
         }
 
         // ---- Face buttons ----
-        const float faceR = FACE_BTN_R * vh * g_layout.scale;
-        DrawFaceButton(dl, pts, ElemRectOf(TC_A, vw, vh).c, faceR, EButtonIcon::A, XAMINPUT_GAMEPAD_A, st);
-        DrawFaceButton(dl, pts, ElemRectOf(TC_B, vw, vh).c, faceR, EButtonIcon::B, XAMINPUT_GAMEPAD_B, st);
-        DrawFaceButton(dl, pts, ElemRectOf(TC_X, vw, vh).c, faceR, EButtonIcon::X, XAMINPUT_GAMEPAD_X, st);
-        DrawFaceButton(dl, pts, ElemRectOf(TC_Y, vw, vh).c, faceR, EButtonIcon::Y, XAMINPUT_GAMEPAD_Y, st);
+        DrawFaceButton(dl, pts, TC_A, ElemRectOf(TC_A, vw, vh), EButtonIcon::A, XAMINPUT_GAMEPAD_A, st);
+        DrawFaceButton(dl, pts, TC_B, ElemRectOf(TC_B, vw, vh), EButtonIcon::B, XAMINPUT_GAMEPAD_B, st);
+        DrawFaceButton(dl, pts, TC_X, ElemRectOf(TC_X, vw, vh), EButtonIcon::X, XAMINPUT_GAMEPAD_X, st);
+        DrawFaceButton(dl, pts, TC_Y, ElemRectOf(TC_Y, vw, vh), EButtonIcon::Y, XAMINPUT_GAMEPAD_Y, st);
 
         // ---- Shoulders ----
-        const float shHW = SHOULDER_HW * vh * g_layout.scale;
-        const float shHH = SHOULDER_HH * vh * g_layout.scale;
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_LB, vw, vh).c, shHW, shHH, shHW * 0.75f, shHH * 0.85f, EButtonIcon::LB))
+        const ElemRect lb = ElemRectOf(TC_LB, vw, vh);
+        const ElemRect rb = ElemRectOf(TC_RB, vw, vh);
+        if (DrawWideButton(dl, pts, TC_LB, lb, lb.hw * 0.75f, lb.hh * 0.85f, EButtonIcon::LB))
             st.wButtons |= XAMINPUT_GAMEPAD_LEFT_SHOULDER;
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_RB, vw, vh).c, shHW, shHH, shHW * 0.75f, shHH * 0.85f, EButtonIcon::RB))
+        if (DrawWideButton(dl, pts, TC_RB, rb, rb.hw * 0.75f, rb.hh * 0.85f, EButtonIcon::RB))
             st.wButtons |= XAMINPUT_GAMEPAD_RIGHT_SHOULDER;
 
         // ---- Triggers ----
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_LT, vw, vh).c, shHW, shHH, shHH * 0.95f, shHH * 0.95f, EButtonIcon::LT))
+        const ElemRect lt = ElemRectOf(TC_LT, vw, vh);
+        const ElemRect rt = ElemRectOf(TC_RT, vw, vh);
+        if (DrawWideButton(dl, pts, TC_LT, lt, lt.hh * 0.95f, lt.hh * 0.95f, EButtonIcon::LT))
             st.bLeftTrigger = 255;
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_RT, vw, vh).c, shHW, shHH, shHH * 0.95f, shHH * 0.95f, EButtonIcon::RT))
+        if (DrawWideButton(dl, pts, TC_RT, rt, rt.hh * 0.95f, rt.hh * 0.95f, EButtonIcon::RT))
             st.bRightTrigger = 255;
 
         // ---- Start / Back ----
-        const float menuHW = MENU_HW * vh * g_layout.scale;
-        const float menuHH = MENU_HH * vh * g_layout.scale;
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_START, vw, vh).c, menuHW, menuHH, menuHW, menuHH, EButtonIcon::Start))
+        const ElemRect start = ElemRectOf(TC_START, vw, vh);
+        const ElemRect back = ElemRectOf(TC_BACK, vw, vh);
+        if (DrawWideButton(dl, pts, TC_START, start, start.hw, start.hh, EButtonIcon::Start))
             st.wButtons |= XAMINPUT_GAMEPAD_START;
-        if (DrawWideButton(dl, pts, ElemRectOf(TC_BACK, vw, vh).c, menuHW, menuHH, menuHW, menuHH, EButtonIcon::Back))
+        if (DrawWideButton(dl, pts, TC_BACK, back, back.hw, back.hh, EButtonIcon::Back))
             st.wButtons |= XAMINPUT_GAMEPAD_BACK;
 
         g_state = st;
@@ -890,13 +969,15 @@ void TouchControls::Draw()
     // Action bar (top). Handle taps first so a tap on a button never starts a drag.
     const float barY   = vh * 0.055f;
     const float barHH  = vh * 0.040f;
-    const float wideHW = vw * 0.085f;
-    const float sizeHW = vh * 0.050f;
+    const float wideHW = vw * 0.060f;
+    const float actionHW = vw * 0.034f;
 
-    const ImVec2 resetC(vw * 0.30f, barY);
-    const ImVec2 minusC(vw * 0.44f, barY);
-    const ImVec2 plusC (vw * 0.56f, barY);
-    const ImVec2 doneC (vw * 0.70f, barY);
+    const ImVec2 resetC(vw * 0.20f, barY);
+    const ImVec2 sizeMinusC(vw * 0.36f, barY);
+    const ImVec2 sizePlusC (vw * 0.44f, barY);
+    const ImVec2 alphaMinusC(vw * 0.56f, barY);
+    const ImVec2 alphaPlusC (vw * 0.64f, barY);
+    const ImVec2 doneC (vw * 0.80f, barY);
 
     bool changed = false;
     std::unordered_set<SDL_FingerID> consumed;
@@ -928,14 +1009,28 @@ void TouchControls::Draw()
         g_layout = kDefault;
         changed = true;
     }
-    if (tapConsume(minusC, sizeHW, barHH))
+    if (tapConsume(sizeMinusC, actionHW, barHH))
     {
-        g_layout.scale = std::clamp(g_layout.scale - 0.05f, SCALE_MIN, SCALE_MAX);
+        g_layout.scale[g_selectedElem] = std::clamp(
+            g_layout.scale[g_selectedElem] - 0.05f, SCALE_MIN, SCALE_MAX);
         changed = true;
     }
-    if (tapConsume(plusC, sizeHW, barHH))
+    if (tapConsume(sizePlusC, actionHW, barHH))
     {
-        g_layout.scale = std::clamp(g_layout.scale + 0.05f, SCALE_MIN, SCALE_MAX);
+        g_layout.scale[g_selectedElem] = std::clamp(
+            g_layout.scale[g_selectedElem] + 0.05f, SCALE_MIN, SCALE_MAX);
+        changed = true;
+    }
+    if (tapConsume(alphaMinusC, actionHW, barHH))
+    {
+        g_layout.opacity[g_selectedElem] = std::clamp(
+            g_layout.opacity[g_selectedElem] - 0.05f, OPACITY_MIN, OPACITY_MAX);
+        changed = true;
+    }
+    if (tapConsume(alphaPlusC, actionHW, barHH))
+    {
+        g_layout.opacity[g_selectedElem] = std::clamp(
+            g_layout.opacity[g_selectedElem] + 0.05f, OPACITY_MIN, OPACITY_MAX);
         changed = true;
     }
 
@@ -983,6 +1078,7 @@ void TouchControls::Draw()
 
                 if (hit)
                 {
+                    g_selectedElem = i;
                     g_dragElem = i;
                     g_dragFinger = f.id;
                     g_grabX = g_layout.x[i] - f.pos.x / vw;
@@ -1002,7 +1098,7 @@ void TouchControls::Draw()
         const ElemRect r = ElemRectOf(i, vw, vh);
         DrawElemVisual(dl, i, r);
 
-        const ImU32 col = (i == g_dragElem) ? IM_COL32(255, 220, 60, 255) : IM_COL32(70, 200, 110, 220);
+        const ImU32 col = (i == g_selectedElem) ? IM_COL32(255, 202, 74, 255) : IM_COL32(70, 200, 110, 190);
         if (r.round)
             dl->AddCircle(r.c, r.hw, col, 40, 3.0f);
         else
@@ -1011,16 +1107,20 @@ void TouchControls::Draw()
 
     // ---- Action bar on top ----
     tapBox(resetC, wideHW, barHH, "RESET", false);
-    tapBox(minusC, sizeHW, barHH, "-", false);
-    tapBox(plusC,  sizeHW, barHH, "+", false);
-    tapBox(doneC,  wideHW, barHH, "DONE", true);
+    tapBox(sizeMinusC, actionHW, barHH, "S-", false);
+    tapBox(sizePlusC,  actionHW, barHH, "S+", false);
+    tapBox(alphaMinusC, actionHW, barHH, "A-", false);
+    tapBox(alphaPlusC,  actionHW, barHH, "A+", false);
+    tapBox(doneC, wideHW, barHH, "DONE", true);
 
-    char sizeLabel[32];
-    snprintf(sizeLabel, sizeof(sizeLabel), "SIZE %d%%", int(g_layout.scale * 100.0f + 0.5f));
+    char sizeLabel[64];
+    snprintf(sizeLabel, sizeof(sizeLabel), "SIZE %d%%  ALPHA %d%%",
+        int(g_layout.scale[g_selectedElem] * 100.0f + 0.5f),
+        int(g_layout.opacity[g_selectedElem] * 100.0f + 0.5f));
     const ImVec2 slSize = font->CalcTextSizeA(fontPx, FLT_MAX, 0.0f, sizeLabel);
     dl->AddText(font, fontPx, { vw * 0.50f - slSize.x * 0.5f, barY + barHH * 1.4f }, IM_COL32(255, 255, 255, 230), sizeLabel);
 
-    const char* hint = "Drag buttons to arrange";
+    const char* hint = "Select a control, then drag or adjust it";
     const ImVec2 hintSize = font->CalcTextSizeA(fontPx, FLT_MAX, 0.0f, hint);
     dl->AddText(font, fontPx, { vw * 0.50f - hintSize.x * 0.5f, vh * 0.14f }, IM_COL32(255, 255, 255, 200), hint);
 

@@ -58,8 +58,6 @@
     <string name="error_game_partial">インストールが不完全か破損しています。不足している必須ファイル:%1$s\n\n想定されるルート:\n%2$s</string>
     <string name="error_game_nested">ゲームファイルが誤ったフォルダー（%1$s）に入れ子になっているようです。game、update、patched および任意の dlc フォルダーを直接次の場所に移動してください:\n%2$s</string>
     <string name="error_settings_save">設定を保存できませんでした: %1$s</string>
-    <string name="error_layout_editor">レイアウトエディターを開始できませんでした: %1$s</string>
-    <string name="error_layout_requires_game">レイアウトエディターはゲームのレンダラーを使用するため、有効なゲームのインストールが必要です。</string>
     <string name="error_driver_extension">Vulkan の .so ファイル、または AdrenoTools/ExynosTools の .zip パッケージを選択してください。</string>
     <string name="error_driver_copy">ドライバーをインポートできませんでした: %1$s</string>
     <string name="error_open_files">Android のファイルアプリでアプリのフォルダーを開けませんでした。</string>
@@ -94,11 +92,16 @@
     <string name="documents_save_title">Unleashed Recomp のセーブデータ</string>
     <string name="documents_save_summary">セーブデータ（SYS-DATA）とMODごとのセーブ</string>
     <string name="launcher_open_saves">セーブフォルダーを開く</string>
-    <string name="launcher_controls_moved">画面上のボタン・カメラ・スティックはゲーム内のオプションメニュー（入力）に移動しました。プレイ中にそこで調整できます。</string>
+    <string name="launcher_controls_moved">ゲームファイルをインストールしなくてもタッチ操作を配置できます。各操作の位置・サイズ・透明度を個別に調整できます。</string>
     <string name="launcher_force_bc">ネイティブBCテクスチャを強制（ETC2トランスコードを無効化。BC対応GPU専用）</string>
     <string name="mod_manager_codes">コード</string>
     <string name="mod_manager_codes_hint">起動時に適用される内蔵パッチ。MODリストと一緒に保存されます。適用するにはゲームを再起動してください。</string>
     <string name="launcher_localization">ファン翻訳</string>
     <string name="launcher_localization_none">なし（オリジナル版）</string>
     <string name="launcher_localization_summary">localizations/ から任意のパッケージを選択します。ゲームのダンプを変更せず、対応する基本言語のリソースを上書きします。</string>
+    <string name="mod_manager_move_up">%1$sを上に移動</string>
+    <string name="mod_manager_move_down">%1$sを下に移動</string>
+    <string name="touch_editor_title">タッチ操作レイアウト</string>
+    <string name="touch_editor_saved">タッチ操作レイアウトを保存しました。</string>
+    <string name="touch_editor_save_error">タッチレイアウトを保存できませんでした：%1$s</string>
 </resources>

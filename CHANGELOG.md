@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.4 (2026-09-12)
+
+- Refreshed the Android launcher, mod screens and controls with a modern Material-style interface while restoring the classic Sonic application icon.
+- Added a standalone touch-control editor that works before game files are installed, with per-control position, size and opacity plus version 1 layout migration.
+
 ## 0.5.2 (2026-07-13)
 
 Version 0.5.2 replaces the withdrawn 0.5.1 APK. It contains every user-facing change from 0.5.1, removes performance instrumentation that was unintentionally left enabled there, and adds the features below.
