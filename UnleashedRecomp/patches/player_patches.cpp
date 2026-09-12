@@ -446,6 +446,22 @@ PPC_FUNC(sub_823F6698)
     __imp__sub_823F6698(ctx, base);
 }
 
+// Werehog transitions into this airborne/fall state after the upward part of
+// the jump finishes. Catch a fresh A tap here as well so releasing A lets the
+// character fall normally, while tapping A again during the fall starts a new
+// jump instead of requiring A to be held.
+PPC_FUNC_IMPL(__imp__sub_823F6A78);
+PPC_FUNC(sub_823F6A78)
+{
+    if (IsInfiniteJumpTap())
+    {
+        PPCContext jumpContext = ctx;
+        __imp__sub_823F6550(jumpContext, base);
+    }
+
+    __imp__sub_823F6A78(ctx, base);
+}
+
 // Daytime Sonic uses CStateJumpBall in the speed context. Its state entry
 // routine is separate from the Werehog jump states above, so hook both paths
 // and re-enter the active state on each newly tapped A button.
@@ -460,6 +476,22 @@ PPC_FUNC(sub_8233EDE0)
     }
 
     __imp__sub_8233EDE0(ctx, base);
+}
+
+// Once daytime Sonic leaves the initial JumpBall state, later A presses are
+// handled by this airborne/fall update path. Catch fresh taps here too so the
+// cheat behaves like Werehog: release A to fall normally, then tap A again to
+// start another jump while still in mid-air.
+PPC_FUNC_IMPL(__imp__sub_8233EEC0);
+PPC_FUNC(sub_8233EEC0)
+{
+    if (IsInfiniteJumpTap())
+    {
+        PPCContext jumpContext = ctx;
+        __imp__sub_8233F138(jumpContext, base);
+    }
+
+    __imp__sub_8233EEC0(ctx, base);
 }
 
 // ~SWA::Player::CEvilSonicContext
