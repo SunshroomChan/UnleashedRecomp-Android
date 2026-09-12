@@ -38,7 +38,41 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      
+      - name: Restore XenosRecomp dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
 
+          XENOS_TP="tools/XenosRecomp/thirdparty"
+
+          if [ ! -f "$XENOS_TP/zstd/build/cmake/CMakeLists.txt" ]; then
+            rm -rf "$XENOS_TP/zstd"
+            git clone --depth 1 https://github.com/facebook/zstd.git "$XENOS_TP/zstd"
+          fi
+
+          if [ ! -f "$XENOS_TP/smol-v/CMakeLists.txt" ]; then
+            rm -rf "$XENOS_TP/smol-v"
+            git clone --depth 1 https://github.com/aras-p/smol-v.git "$XENOS_TP/smol-v"
+          fi
+
+          if [ ! -f "$XENOS_TP/xxHash/cmake_unofficial/CMakeLists.txt" ]; then
+            rm -rf "$XENOS_TP/xxHash"
+            git clone --depth 1 https://github.com/Cyan4973/xxHash.git "$XENOS_TP/xxHash"
+          fi
+
+          if [ ! -f "$XENOS_TP/fmt/CMakeLists.txt" ]; then
+            rm -rf "$XENOS_TP/fmt"
+            git clone --depth 1 https://github.com/fmtlib/fmt.git "$XENOS_TP/fmt"
+          fi
+
+          if [ ! -f "$XENOS_TP/dxc-bin/CMakeLists.txt" ]; then
+            rm -rf "$XENOS_TP/dxc-bin"
+            git clone --depth 1 https://github.com/renderbag/dxc-bin.git "$XENOS_TP/dxc-bin"
+          fi
+
+          test -f "$XENOS_TP/zstd/build/cmake/CMakeLists.txt"
+      
       - name: Check out game files (private repo)
         uses: actions/checkout@v4
         with:
