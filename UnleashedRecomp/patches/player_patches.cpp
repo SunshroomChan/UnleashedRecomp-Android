@@ -134,6 +134,16 @@ PPC_FUNC(sub_82316B68)
     __imp__sub_82316B68(ctx, base);
 }
 
+// Player ring initialisation. This runs when either daytime Sonic or the
+// Werehog context is created, before the first ring is collected or lost, so
+// the per-tick cheat pass can cover both forms from their first frame.
+PPC_FUNC_IMPL(__imp__sub_8244EEF8);
+PPC_FUNC(sub_8244EEF8)
+{
+    TrackRingPlayerContext(ctx.r3.u32);
+    __imp__sub_8244EEF8(ctx, base);
+}
+
 namespace PlayerPatches
 {
     void Update()
