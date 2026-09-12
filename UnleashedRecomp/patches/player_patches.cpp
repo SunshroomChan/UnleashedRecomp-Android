@@ -199,7 +199,7 @@ namespace PlayerPatches
             for (auto context : g_ringPlayerContexts)
             {
                 if (context)
-                    PPC_STORE_U32(context + 1336, 999);
+                    *reinterpret_cast<be<uint32_t>*>(g_memory.Translate(context + 1336)) = 999;
             }
         }
 
