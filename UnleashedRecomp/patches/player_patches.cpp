@@ -13,10 +13,20 @@ static uint32_t g_lastTrickScore;
 static float g_lastDarkGaiaEnergy;
 static bool g_isUnleashCancelled;
 static std::array<uint32_t, 2> g_evilSonicContexts{};
+static std::array<uint32_t, 4> g_playerContexts{};
 
 static constexpr uint32_t PLAYER_RING_COUNT_OFFSET = 1336;
 static constexpr uint32_t PLAYER_RING_ENERGY_OFFSET = 1340;
 static constexpr uint32_t INFINITE_RING_COUNT = 999;
+
+static bool IsInfiniteJumpTap()
+{
+    if (!Config::InfiniteJump)
+        return false;
+
+    auto input = SWA::CInputState::GetInstance();
+    return input && input->GetPadState().IsTapped(SWA::eKeyState_A);
+}
 
 PPC_FUNC_IMPL(__imp__sub_82318DF0);
 
@@ -63,6 +73,41 @@ static void TrackEvilSonicContext(uint32_t context)
 
     g_evilSonicContexts[0] = g_evilSonicContexts[1];
     g_evilSonicContexts[1] = context;
+}
+
+static void TrackPlayerContext(uint32_t context)
+{
+    if (!context)
+        return;
+
+    for (auto known : g_playerContexts)
+    {
+        if (known == context)
+            return;
+    }
+
+    for (auto& known : g_playerContexts)
+    {
+        if (!known)
+        {
+            known = context;
+            return;
+        }
+    }
+
+    g_playerContexts[0] = g_playerContexts[1];
+    g_playerContexts[1] = g_playerContexts[2];
+    g_playerContexts[2] = g_playerContexts[3];
+    g_playerContexts[3] = context;
+}
+
+static void ForgetPlayerContext(uint32_t context)
+{
+    for (auto& known : g_playerContexts)
+    {
+        if (known == context)
+            known = 0;
+    }
 }
 
 static void ForgetEvilSonicContext(uint32_t context)
@@ -214,6 +259,8 @@ PPC_FUNC(sub_8244EEF8)
     const auto playerContext = ctx.r3.u32;
     __imp__sub_8244EEF8(ctx, base);
 
+    TrackPlayerContext(playerContext);
+
     if (Config::InfiniteRings)
         PPC_STORE_U32(playerContext + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
 
@@ -225,22 +272,37 @@ namespace PlayerPatches
 {
     void Update()
     {
-        if (!Config::InfiniteUnleash)
+        if (!Config::InfiniteUnleash && !Config::InfiniteRings)
             return;
 
         // Keep the Werehog's Dark Gaia/Unleash gauge full from the first
-        // frame and after every game tick.  These pointers are tracked only
-        // for CEvilSonicContext instances, so daytime Sonic is unaffected.
-        if (Config::InfiniteUnleash)
+        // frame and after every game tick. Ring writes below use the shared
+        // player context so both character forms stay in sync.
+        for (auto context : g_evilSonicContexts)
         {
-            for (auto context : g_evilSonicContexts)
+            if (context)
             {
-                if (context)
+                auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(context);
+                if (pEvilSonicContext)
                 {
-                    auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(context);
-                    if (pEvilSonicContext)
+                    if (Config::InfiniteUnleash)
                         pEvilSonicContext->m_DarkGaiaEnergy = 100.0f;
+                    if (Config::InfiniteRings)
+                        PPC_STORE_U32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
                 }
+            }
+        }
+
+        if (Config::InfiniteRings)
+        {
+            // The base player context is shared by daytime Sonic and the
+            // Werehog. Keep the backing counter full as well as the public
+            // getter/setter hooks so the HUD cannot remain at 000 after a
+            // character transition.
+            for (auto context : g_playerContexts)
+            {
+                if (context && g_memory.Translate(context))
+                    PPC_STORE_U32(context + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
             }
         }
 
@@ -317,6 +379,9 @@ PPC_FUNC(sub_823B49D8)
     __imp__sub_823B49D8(ctx, base);
 
     TrackEvilSonicContext(ctx.r3.u32);
+    TrackPlayerContext(ctx.r3.u32);
+    if (Config::InfiniteRings)
+        PPC_STORE_U32(ctx.r3.u32 + PLAYER_RING_COUNT_OFFSET, INFINITE_RING_COUNT);
     if (Config::InfiniteUnleash)
     {
         if (auto pEvilSonicContext = (SWA::Player::CEvilSonicContext*)g_memory.Translate(ctx.r3.u32))
@@ -327,13 +392,78 @@ PPC_FUNC(sub_823B49D8)
     SDL_User_EvilSonic(true);
 }
 
+// The shared player context owns the normal Sonic and Werehog state. Tracking
+// it at construction/destruction lets the ring refresh stay valid across a
+// stage transition without retaining freed guest pointers.
+PPC_FUNC_IMPL(__imp__sub_8230D620);
+PPC_FUNC(sub_8230D620)
+{
+    __imp__sub_8230D620(ctx, base);
+    TrackPlayerContext(ctx.r3.u32);
+}
+
+PPC_FUNC_IMPL(__imp__sub_82319A78);
+PPC_FUNC(sub_82319A78)
+{
+    ForgetPlayerContext(ctx.r3.u32);
+    ForgetEvilSonicContext(ctx.r3.u32);
+    __imp__sub_82319A78(ctx, base);
+}
+
+// CStateJump and CStateJumpSecond both apply the game's own jump impulse in
+// their entry routine. Re-entering the active state on an A tap gives a true
+// mid-air jump and keeps all of the character-specific animation/physics
+// handling intact. It also avoids holding A to alter gravity.
+PPC_FUNC_IMPL(__imp__sub_823F3500);
+PPC_FUNC_IMPL(__imp__sub_823F3C48);
+PPC_FUNC(sub_823F3C48)
+{
+    if (IsInfiniteJumpTap())
+    {
+        PPCContext jumpContext = ctx;
+        __imp__sub_823F3500(jumpContext, base);
+    }
+
+    __imp__sub_823F3C48(ctx, base);
+}
+
+PPC_FUNC_IMPL(__imp__sub_823F6550);
+PPC_FUNC_IMPL(__imp__sub_823F6698);
+PPC_FUNC(sub_823F6698)
+{
+    if (IsInfiniteJumpTap())
+    {
+        PPCContext jumpContext = ctx;
+        __imp__sub_823F6550(jumpContext, base);
+    }
+
+    __imp__sub_823F6698(ctx, base);
+}
+
+// Daytime Sonic uses CStateJumpBall in the speed context. Its state entry
+// routine is separate from the Werehog jump states above, so hook both paths
+// and re-enter the active state on each newly tapped A button.
+PPC_FUNC_IMPL(__imp__sub_8233F138);
+PPC_FUNC_IMPL(__imp__sub_8233EDE0);
+PPC_FUNC(sub_8233EDE0)
+{
+    if (IsInfiniteJumpTap())
+    {
+        PPCContext jumpContext = ctx;
+        __imp__sub_8233F138(jumpContext, base);
+    }
+
+    __imp__sub_8233EDE0(ctx, base);
+}
+
 // ~SWA::Player::CEvilSonicContext
 PPC_FUNC_IMPL(__imp__sub_823B4590);
 PPC_FUNC(sub_823B4590)
 {
+    const auto context = ctx.r3.u32;
     __imp__sub_823B4590(ctx, base);
 
-    ForgetEvilSonicContext(ctx.r3.u32);
+    ForgetEvilSonicContext(context);
 
     App::s_isWerehog = false;
 

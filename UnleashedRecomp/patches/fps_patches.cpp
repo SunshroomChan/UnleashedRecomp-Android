@@ -13,20 +13,6 @@ void DownForceDeltaTimeFixMidAsmHook(PPCVRegister& v127, PPCRegister& f24)
 {
     double factor = 1.0 / (f24.f64 * 30.0);
 
-    // The old Infinite Jump implementation re-armed the A-button tap after
-    // the player state machine had already consumed input, so it could not
-    // create another jump in mid-air. This vector is the common player down
-    // force. Reversing it while A is held gives both Sonic forms a stable
-    // hold-to-rise jump without retaining a player-context pointer.
-    if (Config::InfiniteJump)
-    {
-        if (auto input = SWA::CInputState::GetInstance();
-            input && input->GetPadState().IsDown(SWA::eKeyState_A))
-        {
-            factor *= -1.25;
-        }
-    }
-
     v127.f32[0] *= factor;
     v127.f32[1] *= factor;
     v127.f32[2] *= factor;
