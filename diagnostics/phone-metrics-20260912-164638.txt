@@ -1,0 +1,1061 @@
+=== 2026-09-12T16:52:46.6807498+07:00 ===
+PID=23534
+  Native Heap   104763   104600       76       52   105912   152344   106705    41162
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   104600                         105912
+            Graphics:   318660                         318664
+           TOTAL PSS:   881310            TOTAL RSS:  1003560       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:53:02.3811167+07:00 ===
+PID=23534
+  Native Heap   104907   104744       76       52   106056   152344   106816    41182
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   104744                         106056
+            Graphics:   318660                         318664
+           TOTAL PSS:   880766            TOTAL RSS:  1003020       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:53:17.9488849+07:00 ===
+PID=23534
+  Native Heap   105575   105412       76       52   106724   152600   107244    40935
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105412                         106724
+            Graphics:   318660                         318664
+           TOTAL PSS:   881429            TOTAL RSS:  1003680       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:53:33.5824664+07:00 ===
+PID=23534
+  Native Heap   105659   105496       76       52   106808   152856   107205    41186
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105496                         106808
+            Graphics:   319276                         319280
+           TOTAL PSS:   882223            TOTAL RSS:  1004304       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:53:49.2390192+07:00 ===
+PID=23534
+  Native Heap   105355   105192       76       52   106504   152856   107299    41181
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105192                         106504
+            Graphics:   319524                         319528
+           TOTAL PSS:   881919            TOTAL RSS:  1003996       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:54:04.8408647+07:00 ===
+PID=23534
+  Native Heap   105495   105332       76       52   106644   152856   107438    41173
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105332                         106644
+            Graphics:   319524                         319528
+           TOTAL PSS:   882143            TOTAL RSS:  1004220       TOTAL SWAP PSS:      157
+  164% 23534/com.sega.sonicunr: 135% user + 28% kernel / faults: 21230 minor 318 major
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:54:20.5097083+07:00 ===
+PID=23534
+  Native Heap   105167   105004       76       52   106316   152856   105235    43437
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105004                         106316
+            Graphics:   319532                         319536
+           TOTAL PSS:   881935            TOTAL RSS:  1004012       TOTAL SWAP PSS:      157
+  177% 23534/com.sega.sonicunr: 144% user + 32% kernel / faults: 4585 minor
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:54:36.1041233+07:00 ===
+PID=23534
+  Native Heap   105259   105096       76       52   106408   153112   105260    43441
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105096                         106408
+            Graphics:   319532                         319536
+           TOTAL PSS:   881955            TOTAL RSS:  1004032       TOTAL SWAP PSS:      157
+  177% 23534/com.sega.sonicunr: 144% user + 32% kernel / faults: 4585 minor
+  level: 51
+  temperature: 371
+  Capacity level: -1
+=== 2026-09-12T16:54:51.7560610+07:00 ===
+PID=23534
+  Native Heap   105287   105124       76       52   106436   153112   105302    43428
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105124                         106436
+            Graphics:   319532                         319536
+           TOTAL PSS:   881983            TOTAL RSS:  1004060       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:55:07.3864821+07:00 ===
+PID=23534
+  Native Heap   105379   105216       76       52   106528   153368   105382    43440
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105216                         106528
+            Graphics:   319532                         319536
+           TOTAL PSS:   882186            TOTAL RSS:  1004208       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:55:23.1020095+07:00 ===
+PID=23534
+  Native Heap   105539   105376       76       52   106688   153368   105565    43417
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   105376                         106688
+            Graphics:   319532                         319536
+           TOTAL PSS:   882497            TOTAL RSS:  1004516       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:55:38.7526791+07:00 ===
+PID=23534
+  Native Heap   106447   106284       76       52   107596   153624   107928    41205
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   106284                         107596
+            Graphics:   319600                         319604
+           TOTAL PSS:   886749            TOTAL RSS:  1008768       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:55:54.3525712+07:00 ===
+PID=23534
+  Native Heap   106887   106724       76       52   108036   153880   108227    41186
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   106724                         108036
+            Graphics:   319612                         319616
+           TOTAL PSS:   887444            TOTAL RSS:  1009464       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:56:09.9882372+07:00 ===
+PID=23534
+  Native Heap   107031   106868       76       52   108180   153880   108391    41137
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   106868                         108180
+            Graphics:   319624                         319628
+           TOTAL PSS:   887404            TOTAL RSS:  1009420       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:56:25.5951457+07:00 ===
+PID=23534
+  Native Heap   107151   106988       76       52   108300   153880   108476    41175
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   106988                         108300
+            Graphics:   319624                         319628
+           TOTAL PSS:   887624            TOTAL RSS:  1009640       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:56:41.2361964+07:00 ===
+PID=23534
+  Native Heap   107211   107048       76       52   108360   154392   108565    41172
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   107048                         108360
+            Graphics:   319624                         319628
+           TOTAL PSS:   887588            TOTAL RSS:  1009604       TOTAL SWAP PSS:      157
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:56:56.8327743+07:00 ===
+PID=23534
+  Native Heap   107265   107104       76       51   108416   154392   108706    41158
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   107104                         108416
+            Graphics:   319624                         319628
+           TOTAL PSS:   887575            TOTAL RSS:  1009708       TOTAL SWAP PSS:      154
+  119% 23534/com.sega.sonicunr: 84% user + 35% kernel / faults: 1072 minor
+  level: 50
+  temperature: 376
+  Capacity level: -1
+=== 2026-09-12T16:57:12.4662791+07:00 ===
+PID=23534
+  Native Heap   107349   107188       76       51   108500   154392   108798    41173
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   107188                         108500
+            Graphics:   319624                         319628
+           TOTAL PSS:   887624            TOTAL RSS:  1009752       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:57:28.1433265+07:00 ===
+PID=23534
+  Native Heap   109497   109336       76       51   110648   154648   109031    41164
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   109336                         110648
+            Graphics:   319976                         319980
+           TOTAL PSS:   890214            TOTAL RSS:  1012352       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:57:43.7740579+07:00 ===
+PID=23534
+  Native Heap   109245   109084       76       51   110396   154904   108793    41537
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   109084                         110396
+            Graphics:   319976                         319980
+           TOTAL PSS:   889908            TOTAL RSS:  1012100       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:57:59.3309628+07:00 ===
+PID=23534
+  Native Heap   108601   108440       76       51   109752   154904   106949    43412
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   108440                         109752
+            Graphics:   320240                         320244
+           TOTAL PSS:   889180            TOTAL RSS:  1011372       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:58:14.9353406+07:00 ===
+PID=23534
+  Native Heap   108637   108476       76       51   109788   154904   106968    43423
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   108476                         109788
+            Graphics:   320240                         320244
+           TOTAL PSS:   889216            TOTAL RSS:  1011408       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:58:30.4926553+07:00 ===
+PID=23534
+  Native Heap   108677   108516       76       51   109828   154904   107031    43387
+   EGL mtrack   102208   102208        0        0   102208                           
+    GL mtrack    42292    42292        0        0    42292                           
+         Native Heap:   108516                         109828
+            Graphics:   320240                         320244
+           TOTAL PSS:   889468            TOTAL RSS:  1011820       TOTAL SWAP PSS:      154
+  167% 23534/com.sega.sonicunr: 133% user + 33% kernel / faults: 7299 minor
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:58:46.0890293+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:59:01.7743095+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:59:18.8753830+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:59:35.9759619+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T16:59:51.5143994+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T17:00:08.3136306+07:00 ===
+PID=
+  level: 49
+  temperature: 377
+  Capacity level: -1
+=== 2026-09-12T17:00:23.8365203+07:00 ===
+PID=
+  level: 49
+  temperature: 362
+  Capacity level: -1
+=== 2026-09-12T17:00:40.4406310+07:00 ===
+PID=
+  level: 49
+  temperature: 362
+  Capacity level: -1
+=== 2026-09-12T17:00:57.4879359+07:00 ===
+PID=
+  level: 49
+  temperature: 362
+  Capacity level: -1
+=== 2026-09-12T17:01:13.3402995+07:00 ===
+PID=
+  level: 49
+  temperature: 357
+  Capacity level: -1
+=== 2026-09-12T17:01:30.3608645+07:00 ===
+PID=
+  level: 49
+  temperature: 357
+  Capacity level: -1
+=== 2026-09-12T17:01:45.9253327+07:00 ===
+PID=
+  level: 49
+  temperature: 357
+  Capacity level: -1
+=== 2026-09-12T17:02:02.9075278+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:02:19.9387570+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:02:35.4714896+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:02:51.1854122+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:03:07.2309111+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:03:24.5753137+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:03:40.3525821+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:03:56.0314674+07:00 ===
+PID=
+  level: 49
+  temperature: 349
+  Capacity level: -1
+=== 2026-09-12T17:04:13.1251922+07:00 ===
+PID=
+  level: 49
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:04:28.8232803+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:04:44.5578890+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:05:00.1195707+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:05:15.9919002+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:05:31.7882507+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:05:47.6823303+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:06:04.7507928+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:06:21.7337598+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:06:38.7862240+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:06:55.7106161+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:07:12.8071500+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:07:28.5124984+07:00 ===
+PID=
+  level: 48
+  temperature: 339
+  Capacity level: -1
+=== 2026-09-12T17:07:45.3444614+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:08:00.9975386+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:08:17.1434266+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:08:34.1268886+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:08:49.9401552+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:09:05.5593118+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:09:21.0709567+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:09:38.0259479+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:09:53.5878655+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:10:10.5407633+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:10:26.0382957+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:10:41.6628795+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:10:58.5669342+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:11:15.4698735+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:11:32.6379307+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:11:48.4694292+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:12:04.3340097+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:12:21.2137846+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:12:36.8464654+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:12:53.1843629+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:13:09.0371229+07:00 ===
+PID=
+  level: 48
+  temperature: 328
+  Capacity level: -1
+=== 2026-09-12T17:13:24.7123489+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:13:40.1993036+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:13:56.2441326+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:14:11.7462680+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:14:27.6746695+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:14:43.2979431+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:15:00.3637917+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:15:17.7051040+07:00 ===
+PID=
+  level: 48
+  temperature: 320
+  Capacity level: -1
+=== 2026-09-12T17:15:33.3272770+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:15:49.0722616+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:16:04.7524906+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:16:21.8695337+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:16:39.0891952+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:16:55.0542921+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:17:10.7787130+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:17:26.5838535+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:17:42.1575241+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:17:59.0451411+07:00 ===
+PID=
+  level: 48
+  temperature: 319
+  Capacity level: -1
+=== 2026-09-12T17:18:15.0655933+07:00 ===
+PID=
+  level: 48
+  temperature: 316
+  Capacity level: -1
+=== 2026-09-12T17:18:31.0068009+07:00 ===
+PID=
+  level: 48
+  temperature: 316
+  Capacity level: -1
+=== 2026-09-12T17:18:46.6902240+07:00 ===
+PID=
+  level: 48
+  temperature: 316
+  Capacity level: -1
+=== 2026-09-12T17:19:02.3999454+07:00 ===
+PID=
+  level: 48
+  temperature: 316
+  Capacity level: -1
+=== 2026-09-12T17:19:18.1322578+07:00 ===
+PID=
+  level: 48
+  temperature: 316
+  Capacity level: -1
+=== 2026-09-12T17:19:34.0056054+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:19:49.6390322+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:20:06.4996813+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:20:22.4066089+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:20:39.5606945+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:20:55.1507108+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:21:12.3532891+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:21:27.9145291+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:21:45.2365760+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:22:02.6310716+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:22:18.4558695+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:22:35.6142971+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:22:51.1805521+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:23:06.8840797+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:23:22.4993574+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:23:38.0298574+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:23:53.8473158+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:24:09.6956345+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:24:25.3179767+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:24:42.3221007+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:24:59.4588084+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:25:15.1036991+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:25:31.1863442+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:25:46.9487663+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:26:02.6875110+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:26:18.5296280+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:26:34.5234397+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:26:50.2900263+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:27:06.2592931+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:27:22.1399794+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:27:39.8209106+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:27:55.8624009+07:00 ===
+PID=
+  level: 48
+  temperature: 309
+  Capacity level: -1
+=== 2026-09-12T17:28:11.7947231+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:28:28.7626951+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:28:45.8595356+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:29:01.4660633+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:29:18.3672007+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:29:34.3982142+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:29:50.1805931+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:30:07.1466554+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:30:22.8856669+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:30:40.0925269+07:00 ===
+PID=
+  level: 48
+  temperature: 301
+  Capacity level: -1
+=== 2026-09-12T17:30:55.8247268+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:31:12.8787478+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:31:28.4817731+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:31:44.4915647+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:32:00.0004208+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:32:17.0604117+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:32:32.8111297+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:32:49.8586598+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:33:05.5089795+07:00 ===
+PID=
+  level: 48
+  temperature: 299
+  Capacity level: -1
+=== 2026-09-12T17:33:21.3588196+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:33:38.1821656+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:33:55.2938111+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:34:11.1238781+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:34:26.7948610+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:34:42.4243587+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:34:58.1325052+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:35:13.9100533+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:35:30.1922640+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:35:45.8973384+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:36:03.2552086+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:36:20.4784528+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:36:36.3071969+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:36:53.1838544+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:37:08.6216033+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:37:24.4467869+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:37:41.4271224+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:37:58.5959778+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:38:14.0562442+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:38:30.0635943+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:38:45.6472772+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:39:02.6119105+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:39:19.4804433+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:39:35.1074856+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:39:50.9853569+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:40:06.7161923+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:40:23.8651852+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:40:39.4122515+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1
+=== 2026-09-12T17:40:55.3225682+07:00 ===
+PID=
+  level: 47
+  temperature: 298
+  Capacity level: -1

@@ -119,6 +119,8 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, EnableStageCollisionDebugView, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, FixEggmanlandUsingEventGalleryTransition, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, FixUnleashOutOfControlDrain, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HomingAttackOnJump, false);
+CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteRings, false);
+CONFIG_DEFINE_HIDDEN("Codes", bool, InfiniteJump, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HUDToggleKey, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, SaveScoreAtCheckpoints, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, SkipIntroLogos, false);

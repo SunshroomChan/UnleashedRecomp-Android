@@ -20,7 +20,7 @@ android {
         applicationId "com.sega.sonicunr"
         minSdkVersion 29
         targetSdkVersion 34
-        versionCode 18
+        versionCode 19
         versionName "0.5.4"
         externalNativeBuild {
             ndkBuild {

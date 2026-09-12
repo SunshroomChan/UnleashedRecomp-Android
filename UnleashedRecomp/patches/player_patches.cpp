@@ -54,6 +54,20 @@ void ResetScoreOnRestartMidAsmHook()
     g_lastTrickScore = 0;
 }
 
+/* Ring expenditure hook.
+   The game routes every ring loss (damage, boost costs and scripted drains)
+   through this routine. Passing zero to the original keeps the normal ring
+   update and HUD notification path intact while preventing the count from
+   decreasing when the code is enabled. */
+PPC_FUNC_IMPL(__imp__sub_82318AA0);
+PPC_FUNC(sub_82318AA0)
+{
+    if (Config::InfiniteRings)
+        ctx.r4.u32 = 0;
+
+    __imp__sub_82318AA0(ctx, base);
+}
+
 // Dark Gaia energy change hook.
 PPC_FUNC_IMPL(__imp__sub_823AF7A8);
 PPC_FUNC(sub_823AF7A8)

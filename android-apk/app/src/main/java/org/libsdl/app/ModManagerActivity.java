@@ -66,6 +66,8 @@ public final class ModManagerActivity extends Activity {
         { "FixEggmanlandUsingEventGalleryTransition", "Fix Eggmanland event-gallery transition" },
         { "FixUnleashOutOfControlDrain", "Fix Unleash out-of-control drain" },
         { "HomingAttackOnJump", "Homing attack on jump" },
+        { "InfiniteRings", "Infinite rings" },
+        { "InfiniteJump", "Infinite jump (experimental)" },
         { "SaveScoreAtCheckpoints", "Save score at checkpoints" },
         { "UseAlternateTitle", "Use alternate title" },
         { "UseArrowsForTimeOfDayTransition", "Use arrows for time-of-day transition" },

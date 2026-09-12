@@ -5,6 +5,7 @@
 - Refreshed the Android launcher, mod screens and controls with a modern Material-style interface while restoring the classic Sonic application icon.
 - Added a standalone touch-control editor that works before game files are installed, with per-control position, size and opacity plus version 1 layout migration.
 - Added an optional direct external-folder mode so large game dumps and saves can remain in shared storage across uninstall/reinstall; the permission-free ZIP/folder importer remains available.
+- Added a built-in Infinite Rings cheat and exposed an experimental Infinite Jump toggle in the Codes menu; selections are saved with the mod database.
 
 ## 0.5.2 (2026-07-13)
 
