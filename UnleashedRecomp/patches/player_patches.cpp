@@ -25,6 +25,14 @@ static void StoreGuestU32(uint32_t address, uint32_t value)
         *pValue = value;
 }
 
+static uint32_t LoadGuestU32(uint32_t address)
+{
+    if (auto pValue = reinterpret_cast<const be<uint32_t>*>(g_memory.Translate(address)))
+        return *pValue;
+
+    return 0;
+}
+
 static bool IsInfiniteJumpTap()
 {
     if (!Config::InfiniteJump)
@@ -446,52 +454,171 @@ PPC_FUNC(sub_823F6698)
     __imp__sub_823F6698(ctx, base);
 }
 
-// Werehog transitions into this airborne/fall state after the upward part of
-// the jump finishes. Catch a fresh A tap here as well so releasing A lets the
-// character fall normally, while tapping A again during the fall starts a new
-// jump instead of requiring A to be held.
+PPC_FUNC_IMPL(__imp__sub_82DFB728);
+PPC_FUNC_IMPL(__imp__sub_82E67A88);
+PPC_FUNC_IMPL(__imp__sub_822C0890);
+
+static bool RequestWerehogJumpSecond(PPCContext& sourceContext, uint8_t* base)
+{
+    // The Werehog state table stores Evil_JumpSecond at 0x832783A0. Use the
+    // same descriptor -> state request path as the original game instead of
+    // invoking the JumpSecond entry routine while the state machine is still
+    // in Evil_Fall.
+    static constexpr uint32_t EVIL_JUMP_SECOND_DESCRIPTOR = 0x832783A0;
+    static constexpr uint32_t TEMP_STACK_SIZE = 0x40;
+    static constexpr uint32_t DESCRIPTOR_TEMP_OFFSET = 0x10;
+    static constexpr uint32_t RESULT_TEMP_OFFSET = 0x20;
+
+    const uint32_t stateContext = sourceContext.r3.u32;
+    const uint32_t stateDescriptor = LoadGuestU32(EVIL_JUMP_SECOND_DESCRIPTOR);
+    if (!stateContext || !stateDescriptor)
+        return false;
+
+    PPCContext transitionContext = sourceContext;
+    const uint32_t tempStack = (transitionContext.r1.u32 - TEMP_STACK_SIZE) & ~0xFu;
+    const uint32_t descriptorTemp = tempStack + DESCRIPTOR_TEMP_OFFSET;
+    const uint32_t resultTemp = tempStack + RESULT_TEMP_OFFSET;
+
+    transitionContext.r1.u32 = tempStack;
+    StoreGuestU32(resultTemp, 0);
+    StoreGuestU32(resultTemp + 4, 0);
+
+    transitionContext.r3.u32 = descriptorTemp;
+    transitionContext.r4.u32 = stateDescriptor;
+    __imp__sub_82DFB728(transitionContext, base);
+
+    transitionContext.r5.u32 = transitionContext.r3.u32;
+    transitionContext.r4.u32 = stateContext;
+    transitionContext.r3.u32 = resultTemp;
+    transitionContext.r6.u32 = 0;
+    transitionContext.r8.u32 = 0;
+    transitionContext.f1.f64 = 0.0;
+    __imp__sub_82E67A88(transitionContext, base);
+
+    // The native callers release the shared request object stored at +4.
+    if (const uint32_t requestObject = LoadGuestU32(resultTemp + 4))
+    {
+        transitionContext.r3.u32 = requestObject;
+        __imp__sub_822C0890(transitionContext, base);
+    }
+
+    return true;
+}
+
+// Werehog transitions into Evil_Fall after the upward part of a jump. A new
+// A tap must request a real Evil_JumpSecond state transition. Calling only the
+// jump initializer from this hook leaves the state machine in Evil_Fall, which
+// is what caused the floating/stuck landing after repeated mid-air jumps.
 PPC_FUNC_IMPL(__imp__sub_823F6A78);
 PPC_FUNC(sub_823F6A78)
 {
-    if (IsInfiniteJumpTap())
-    {
-        PPCContext jumpContext = ctx;
-        __imp__sub_823F6550(jumpContext, base);
-    }
+    if (IsInfiniteJumpTap() && RequestWerehogJumpSecond(ctx, base))
+        return;
 
     __imp__sub_823F6A78(ctx, base);
 }
 
-// Daytime Sonic uses CStateJumpBall in the speed context. Its state entry
-// routine is separate from the Werehog jump states above, so hook both paths
-// and re-enter the active state on each newly tapped A button.
-PPC_FUNC_IMPL(__imp__sub_8233F138);
-PPC_FUNC_IMPL(__imp__sub_8233EDE0);
-PPC_FUNC(sub_8233EDE0)
+static bool RequestSonicJumpBall(PPCContext& sourceContext, uint8_t* base, uint32_t stateContext)
 {
-    if (IsInfiniteJumpTap())
+    // The speed-context state-name table used by the surrounding daytime
+    // routines stores JumpBall at 0x8326B9A0 (Stand/Walk/JumpShort/JumpBall).
+    // Request the state through the game's state machine so JumpBall's normal
+    // entry code applies a fresh jump impulse instead of directly invoking an
+    // update routine while Sonic is still in the previous airborne state.
+    static constexpr uint32_t SONIC_JUMP_BALL_DESCRIPTOR = 0x8326B9A0;
+    static constexpr uint32_t TEMP_STACK_SIZE = 0x40;
+    static constexpr uint32_t DESCRIPTOR_TEMP_OFFSET = 0x10;
+    static constexpr uint32_t RESULT_TEMP_OFFSET = 0x20;
+
+    const uint32_t stateDescriptor = LoadGuestU32(SONIC_JUMP_BALL_DESCRIPTOR);
+    if (!stateContext || !stateDescriptor)
+        return false;
+
+    PPCContext transitionContext = sourceContext;
+    const uint32_t tempStack = (transitionContext.r1.u32 - TEMP_STACK_SIZE) & ~0xFu;
+    const uint32_t descriptorTemp = tempStack + DESCRIPTOR_TEMP_OFFSET;
+    const uint32_t resultTemp = tempStack + RESULT_TEMP_OFFSET;
+
+    transitionContext.r1.u32 = tempStack;
+    StoreGuestU32(resultTemp, 0);
+    StoreGuestU32(resultTemp + 4, 0);
+
+    transitionContext.r3.u32 = descriptorTemp;
+    transitionContext.r4.u32 = stateDescriptor;
+    __imp__sub_82DFB728(transitionContext, base);
+
+    // Native JumpBall callers pass the object returned in r3 by
+    // sub_82DFB728 as r5 to the transition request. Passing descriptorTemp
+    // here silently produces an invalid request, which is why daytime Sonic
+    // previously showed no mid-air jump even though this hook was reached.
+    transitionContext.r5.u32 = transitionContext.r3.u32;
+    transitionContext.r4.u32 = stateContext;
+    transitionContext.r3.u32 = resultTemp;
+    transitionContext.r6.u32 = 0;
+    transitionContext.r8.u32 = 0;
+    transitionContext.f1.f64 = 0.0;
+    __imp__sub_82E67A88(transitionContext, base);
+
+    if (const uint32_t requestObject = LoadGuestU32(resultTemp + 4))
     {
-        PPCContext jumpContext = ctx;
-        __imp__sub_8233F138(jumpContext, base);
+        transitionContext.r3.u32 = requestObject;
+        __imp__sub_822C0890(transitionContext, base);
     }
 
-    __imp__sub_8233EDE0(ctx, base);
+    return true;
 }
 
-// Once daytime Sonic leaves the initial JumpBall state, later A presses are
-// handled by this airborne/fall update path. Catch fresh taps here too so the
-// cheat behaves like Werehog: release A to fall normally, then tap A again to
-// start another jump while still in mid-air.
-PPC_FUNC_IMPL(__imp__sub_8233EEC0);
-PPC_FUNC(sub_8233EEC0)
+static bool TryRequestSonicMidairJump(PPCContext& ctx, uint8_t* base, uint32_t stateContext)
 {
-    if (IsInfiniteJumpTap())
-    {
-        PPCContext jumpContext = ctx;
-        __imp__sub_8233F138(jumpContext, base);
-    }
+    return !App::s_isWerehog && IsInfiniteJumpTap() &&
+        RequestSonicJumpBall(ctx, base, stateContext);
+}
 
-    __imp__sub_8233EEC0(ctx, base);
+// Daytime Sonic does not use one common airborne update routine. Different
+// jump/fall substates enter separate state handlers, and several of those
+// handlers contain their own native JumpBall transition. Hook the handlers
+// that already use JumpBall and feed the exact same state object (entry r3)
+// into the transition request. This makes a fresh A tap work while rising or
+// falling instead of only in the one substate that reaches sub_82395940.
+PPC_FUNC_IMPL(__imp__sub_82392FF0);
+PPC_FUNC(sub_82392FF0)
+{
+    if (TryRequestSonicMidairJump(ctx, base, ctx.r3.u32))
+        return;
+
+    __imp__sub_82392FF0(ctx, base);
+}
+
+PPC_FUNC_IMPL(__imp__sub_82394F30);
+PPC_FUNC(sub_82394F30)
+{
+    if (TryRequestSonicMidairJump(ctx, base, ctx.r3.u32))
+        return;
+
+    __imp__sub_82394F30(ctx, base);
+}
+
+// sub_823386E0 also has a native JumpBall request. Keep it as a direct
+// fallback for paths that reach this handler without going through
+// sub_82395940 first.
+PPC_FUNC_IMPL(__imp__sub_823386E0);
+PPC_FUNC(sub_823386E0)
+{
+    if (TryRequestSonicMidairJump(ctx, base, ctx.r3.u32))
+        return;
+
+    __imp__sub_823386E0(ctx, base);
+}
+
+// This wrapper sits above one more daytime virtual-state branch. Catch the
+// tap before the branch can report the frame handled and skip sub_823386E0.
+PPC_FUNC_IMPL(__imp__sub_82395940);
+PPC_FUNC(sub_82395940)
+{
+    if (TryRequestSonicMidairJump(ctx, base, ctx.r3.u32))
+        return;
+
+    __imp__sub_82395940(ctx, base);
 }
 
 // ~SWA::Player::CEvilSonicContext
